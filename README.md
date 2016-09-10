@@ -8,18 +8,18 @@ Takes an assembly file as input, produces a binary, which can be executed in a G
 
 ## Example program
 
-Here is a small example Gameboy program, which displays a smily sprite on screen:
+Here is a small example Gameboy program, which displays a smiley sprite on screen:
 
 ```assembly
-# Simple smily
-# Displays a smily sprite in the upper left corner of the screen
+# Simple smiley
+# Displays a smiley sprite in the upper left corner of the screen
 
 bg_tile_map = 0x9800
 bg_tile_data = 0x9000
 
 [org(0x4000)] graphics: db 0x00, 0x24, 0x24, 0x00, 0x81, 0x7e, 0x00, 0x00
 [org(0x100)] start: nop; jp main
-[org(0x134)] game_title: db "SMILY"
+[org(0x134)] game_title: db "SMILEY"
 
 [org(0x150)] main:
 	# Set LCDC (bit 7: operation on, bit 0: bg and win on)
@@ -80,7 +80,7 @@ It also contains a dynamic framework which you can import into a macOS or iOS ap
 • Error reporting for parsing stage  
 • Line numbers in error reporting  
 • Remaining Gameboy instructions  
-• Using labels as expression values (e.g. in the smily program, being able to say `ld de, graphics`)  
+• Using labels as expression values (e.g. in the smiley program, being able to say `ld de, graphics`)  
 • Graphical code editor  
 • Programs doesn't boot in all emulators (like OpenEmu)
 
