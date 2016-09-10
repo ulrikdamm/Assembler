@@ -1,4 +1,4 @@
-# Gameboy assembler
+# Gameboy Assembler
 
 **work in progress**
 
@@ -64,7 +64,7 @@ It also contains a dynamic framework which you can import into a macOS or iOS ap
 
 ## Project status
 
-Implemented features:
+### Implemented features
 
 • Assembly parsing  
 • Code generation  
@@ -75,16 +75,17 @@ Implemented features:
 • Constant defines  
 • Build-time expressions  
 
-TODO:
+### TODO
 
 • Error reporting for parsing stage  
 • Line numbers in error reporting  
 • Remaining Gameboy instructions  
 • Using labels as expression values (e.g. in the smily program, being able to say `ld de, graphics`)  
 • Graphical code editor  
-• Programs doesn't boot in all emulators (like OpenEMU)
+• Programs doesn't boot in all emulators (like OpenEmu)
 
 ## Contributing
 
-Right now it's still a personal project, and I won't be accepting pull requests for new features yet. Bug fixes and more tests are welcome though.  
+Right now it's still a personal project, and I won't be accepting pull requests for new features yet. Bug fixes and more tests are welcome though.
+
 If you find a bug or a missing feature, feel free to submit an issue.
