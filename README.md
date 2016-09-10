@@ -2,8 +2,8 @@
 
 **work in progress**
 
-Small assembler for Gameboy assembly programs written in Swift.
-Assembly syntax mostly follows other assemblers, but is probably not compatible.
+Small assembler for Gameboy assembly programs written in Swift.  
+Assembly syntax mostly follows other assemblers, but is probably not compatible.  
 Takes an assembly file as input, produces a binary, which can be executed in a Gameboy emulator.
 
 ## Example program
@@ -59,46 +59,32 @@ bg_tile_data = 0x9000
 
 ## Usage
 
-The project comes with a CLI application which you can invoke with "input/file.asm -o output/file.gb".
-
+The project comes with a CLI application which you can invoke with "input/file.asm -o output/file.gb".  
 It also contains a dynamic framework which you can import into a macOS or iOS app.
 
 ## Project status
 
 Implemented features:
 
-• Assembly parsing
-
-• Code generation
-
-• Linking
-
-• Most of the Gameboy instruction set
-
-• Error reporting for the instruction assemling stage
-
-• Command line interface
-
-• Constant defines
-
-• Build-time expressions
+• Assembly parsing  
+• Code generation  
+• Linking  
+• Most of the Gameboy instruction set  
+• Error reporting for the instruction assemling stage  
+• Command line interface  
+• Constant defines  
+• Build-time expressions  
 
 TODO:
 
-• Error reporting for parsing stage
-
-• Line numbers in error reporting
-
-• Remaining Gameboy instructions
-
-• Using labels as expression values (e.g. in the smily program, being able to say `ld de, graphics`)
-
-• Graphical code editor
-
+• Error reporting for parsing stage  
+• Line numbers in error reporting  
+• Remaining Gameboy instructions  
+• Using labels as expression values (e.g. in the smily program, being able to say `ld de, graphics`)  
+• Graphical code editor  
 • Programs doesn't boot in all emulators (like OpenEMU)
 
 ## Contributing
 
-Right now it's still a personal project, and I won't be accepting pull requests for new features yet. Bug fixes and more tests are welcome though.
-
+Right now it's still a personal project, and I won't be accepting pull requests for new features yet. Bug fixes and more tests are welcome though.  
 If you find a bug or a missing feature, feel free to submit an issue.
