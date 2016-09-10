@@ -259,7 +259,7 @@ struct Assembler {
 			switch (to, from) {
 			case (.parens(.constant("bc")), .constant("a")): return [.byte(0x02)]
 			case (.parens(.constant("de")), .constant("a")): return [.byte(0x12)]
-			case _: throw ErrorMessage("Invalid load from \(from) to \(to))")
+			case _: throw ErrorMessage("Invalid load from \(from) to \(to)")
 			}
 		}
 	}

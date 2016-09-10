@@ -8,8 +8,6 @@
 
 import Foundation
 
-let arguments = CommandLine.arguments.dropFirst()
-
 struct Arguments {
 	let inputFile : URL
 	let outputFile : URL

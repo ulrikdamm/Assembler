@@ -38,7 +38,7 @@ struct State {
 		guard var next = getAt(location: location) else { return nil }
 		var nextLocation = source.index(after: location)
 		
-		if next == "#" {
+		while next == "#" {
 			while true {
 				nextLocation = source.index(after: nextLocation)
 				guard let c = getAt(location: nextLocation) else { return nil }
@@ -127,22 +127,18 @@ struct State {
 		var state = ignoreWhitespace()
 		
 		if let (z, newState) = state.getChar(), z == "0" {
-			state = newState
-			
-			if let (c, newState) = state.getChar(), c == "d" {
+			if let (c, newState) = newState.getChar(), c == "d" {
 				state = newState
 				return state.getDecimalNumber()
 			}
 			
-			if let (c, newState) = state.getChar(), c == "x" {
+			if let (c, newState) = newState.getChar(), c == "x" {
 				state = newState
 				return state.getHexNumber()
 			}
-			
-			return nil
-		} else {
-			return state.getDecimalNumber()
 		}
+		
+		return state.getDecimalNumber()
 	}
 	
 	func getHexNumber() -> (value : Int, state : State)? {
@@ -278,7 +274,7 @@ struct State {
 	}
 	
 	func getDefine() -> (value : (name : String, constant : Expression), state : State)? {
-		var state = ignoreWhitespace()
+		var state = ignoreWhitespace(allowNewline: true)
 		
 		guard let (identifier, newState1) = state.getIdentifier() else { return nil }
 		state = newState1
@@ -312,6 +308,9 @@ struct State {
 				state = newState
 				constants[define.name] = define.constant
 			} else {
+				guard state.ignoreWhitespace(allowNewline: true).atEnd else {
+					throw ErrorMessage("Couldn't parse next:\n\(state.source.characters.suffix(from: state.location))")
+				}
 				break
 			}
 		}
