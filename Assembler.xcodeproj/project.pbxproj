@@ -8,8 +8,26 @@
 
 /* Begin PBXBuildFile section */
 		FF451FC31D84388400E54BD3 /* Assembler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FF451FB91D84388400E54BD3 /* Assembler.framework */; };
-		FF451FC81D84388400E54BD3 /* AssemblerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FC71D84388400E54BD3 /* AssemblerTests.swift */; };
-		FF451FCA1D84388400E54BD3 /* Assembler.h in Headers */ = {isa = PBXBuildFile; fileRef = FF451FBC1D84388400E54BD3 /* Assembler.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FF451FD91D84389800E54BD3 /* Assembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD31D84389800E54BD3 /* Assembler.swift */; };
+		FF451FDA1D84389800E54BD3 /* Assembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD31D84389800E54BD3 /* Assembler.swift */; };
+		FF451FDB1D84389800E54BD3 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD41D84389800E54BD3 /* Data.swift */; };
+		FF451FDC1D84389800E54BD3 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD41D84389800E54BD3 /* Data.swift */; };
+		FF451FDD1D84389800E54BD3 /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD51D84389800E54BD3 /* Expression.swift */; };
+		FF451FDE1D84389800E54BD3 /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD51D84389800E54BD3 /* Expression.swift */; };
+		FF451FDF1D84389800E54BD3 /* Linker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD61D84389800E54BD3 /* Linker.swift */; };
+		FF451FE01D84389800E54BD3 /* Linker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD61D84389800E54BD3 /* Linker.swift */; };
+		FF451FE11D84389800E54BD3 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD71D84389800E54BD3 /* Parser.swift */; };
+		FF451FE21D84389800E54BD3 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD71D84389800E54BD3 /* Parser.swift */; };
+		FF451FE31D84389800E54BD3 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD81D84389800E54BD3 /* Util.swift */; };
+		FF451FE41D84389800E54BD3 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD81D84389800E54BD3 /* Util.swift */; };
+		FF451FE61D8438A500E54BD3 /* AssemblerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FE51D8438A500E54BD3 /* AssemblerTests.swift */; };
+		FF451FEE1D843A6A00E54BD3 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FED1D843A6A00E54BD3 /* main.swift */; };
+		FF451FF21D843A7300E54BD3 /* Assembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD31D84389800E54BD3 /* Assembler.swift */; };
+		FF451FF31D843A7300E54BD3 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD41D84389800E54BD3 /* Data.swift */; };
+		FF451FF41D843A7300E54BD3 /* Expression.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD51D84389800E54BD3 /* Expression.swift */; };
+		FF451FF51D843A7300E54BD3 /* Linker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD61D84389800E54BD3 /* Linker.swift */; };
+		FF451FF61D843A7300E54BD3 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD71D84389800E54BD3 /* Parser.swift */; };
+		FF451FF71D843A7300E54BD3 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD81D84389800E54BD3 /* Util.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -22,13 +40,32 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		FF451FE91D843A6A00E54BD3 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		FF451FB91D84388400E54BD3 /* Assembler.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Assembler.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		FF451FBC1D84388400E54BD3 /* Assembler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Assembler.h; sourceTree = "<group>"; };
 		FF451FBD1D84388400E54BD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FF451FC21D84388400E54BD3 /* AssemblerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AssemblerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		FF451FC71D84388400E54BD3 /* AssemblerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblerTests.swift; sourceTree = "<group>"; };
 		FF451FC91D84388400E54BD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FF451FD31D84389800E54BD3 /* Assembler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Assembler.swift; sourceTree = "<group>"; };
+		FF451FD41D84389800E54BD3 /* Data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
+		FF451FD51D84389800E54BD3 /* Expression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Expression.swift; sourceTree = "<group>"; };
+		FF451FD61D84389800E54BD3 /* Linker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Linker.swift; sourceTree = "<group>"; };
+		FF451FD71D84389800E54BD3 /* Parser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Parser.swift; sourceTree = "<group>"; };
+		FF451FD81D84389800E54BD3 /* Util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Util.swift; sourceTree = "<group>"; };
+		FF451FE51D8438A500E54BD3 /* AssemblerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssemblerTests.swift; sourceTree = "<group>"; };
+		FF451FEB1D843A6A00E54BD3 /* AssemblerCLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AssemblerCLI; sourceTree = BUILT_PRODUCTS_DIR; };
+		FF451FED1D843A6A00E54BD3 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,6 +84,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FF451FE81D843A6A00E54BD3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -55,6 +99,7 @@
 			children = (
 				FF451FBB1D84388400E54BD3 /* Assembler */,
 				FF451FC61D84388400E54BD3 /* AssemblerTests */,
+				FF451FEC1D843A6A00E54BD3 /* AssemblerCLI */,
 				FF451FBA1D84388400E54BD3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -64,6 +109,7 @@
 			children = (
 				FF451FB91D84388400E54BD3 /* Assembler.framework */,
 				FF451FC21D84388400E54BD3 /* AssemblerTests.xctest */,
+				FF451FEB1D843A6A00E54BD3 /* AssemblerCLI */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -71,7 +117,12 @@
 		FF451FBB1D84388400E54BD3 /* Assembler */ = {
 			isa = PBXGroup;
 			children = (
-				FF451FBC1D84388400E54BD3 /* Assembler.h */,
+				FF451FD31D84389800E54BD3 /* Assembler.swift */,
+				FF451FD41D84389800E54BD3 /* Data.swift */,
+				FF451FD51D84389800E54BD3 /* Expression.swift */,
+				FF451FD61D84389800E54BD3 /* Linker.swift */,
+				FF451FD71D84389800E54BD3 /* Parser.swift */,
+				FF451FD81D84389800E54BD3 /* Util.swift */,
 				FF451FBD1D84388400E54BD3 /* Info.plist */,
 			);
 			path = Assembler;
@@ -80,10 +131,18 @@
 		FF451FC61D84388400E54BD3 /* AssemblerTests */ = {
 			isa = PBXGroup;
 			children = (
-				FF451FC71D84388400E54BD3 /* AssemblerTests.swift */,
+				FF451FE51D8438A500E54BD3 /* AssemblerTests.swift */,
 				FF451FC91D84388400E54BD3 /* Info.plist */,
 			);
 			path = AssemblerTests;
+			sourceTree = "<group>";
+		};
+		FF451FEC1D843A6A00E54BD3 /* AssemblerCLI */ = {
+			isa = PBXGroup;
+			children = (
+				FF451FED1D843A6A00E54BD3 /* main.swift */,
+			);
+			path = AssemblerCLI;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -93,7 +152,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF451FCA1D84388400E54BD3 /* Assembler.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -136,6 +194,23 @@
 			productReference = FF451FC21D84388400E54BD3 /* AssemblerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		FF451FEA1D843A6A00E54BD3 /* AssemblerCLI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FF451FEF1D843A6A00E54BD3 /* Build configuration list for PBXNativeTarget "AssemblerCLI" */;
+			buildPhases = (
+				FF451FE71D843A6A00E54BD3 /* Sources */,
+				FF451FE81D843A6A00E54BD3 /* Frameworks */,
+				FF451FE91D843A6A00E54BD3 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AssemblerCLI;
+			productName = AssemblerCLI;
+			productReference = FF451FEB1D843A6A00E54BD3 /* AssemblerCLI */;
+			productType = "com.apple.product-type.tool";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -148,9 +223,14 @@
 				TargetAttributes = {
 					FF451FB81D84388400E54BD3 = {
 						CreatedOnToolsVersion = 8.0;
+						LastSwiftMigration = 0800;
 						ProvisioningStyle = Automatic;
 					};
 					FF451FC11D84388400E54BD3 = {
+						CreatedOnToolsVersion = 8.0;
+						ProvisioningStyle = Automatic;
+					};
+					FF451FEA1D843A6A00E54BD3 = {
 						CreatedOnToolsVersion = 8.0;
 						ProvisioningStyle = Automatic;
 					};
@@ -170,6 +250,7 @@
 			targets = (
 				FF451FB81D84388400E54BD3 /* Assembler */,
 				FF451FC11D84388400E54BD3 /* AssemblerTests */,
+				FF451FEA1D843A6A00E54BD3 /* AssemblerCLI */,
 			);
 		};
 /* End PBXProject section */
@@ -196,6 +277,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FF451FDF1D84389800E54BD3 /* Linker.swift in Sources */,
+				FF451FE31D84389800E54BD3 /* Util.swift in Sources */,
+				FF451FD91D84389800E54BD3 /* Assembler.swift in Sources */,
+				FF451FE11D84389800E54BD3 /* Parser.swift in Sources */,
+				FF451FDB1D84389800E54BD3 /* Data.swift in Sources */,
+				FF451FDD1D84389800E54BD3 /* Expression.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -203,7 +290,27 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FF451FC81D84388400E54BD3 /* AssemblerTests.swift in Sources */,
+				FF451FDA1D84389800E54BD3 /* Assembler.swift in Sources */,
+				FF451FDC1D84389800E54BD3 /* Data.swift in Sources */,
+				FF451FE21D84389800E54BD3 /* Parser.swift in Sources */,
+				FF451FE61D8438A500E54BD3 /* AssemblerTests.swift in Sources */,
+				FF451FE01D84389800E54BD3 /* Linker.swift in Sources */,
+				FF451FE41D84389800E54BD3 /* Util.swift in Sources */,
+				FF451FDE1D84389800E54BD3 /* Expression.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FF451FE71D843A6A00E54BD3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FF451FF21D843A7300E54BD3 /* Assembler.swift in Sources */,
+				FF451FF31D843A7300E54BD3 /* Data.swift in Sources */,
+				FF451FF41D843A7300E54BD3 /* Expression.swift in Sources */,
+				FF451FF51D843A7300E54BD3 /* Linker.swift in Sources */,
+				FF451FF61D843A7300E54BD3 /* Parser.swift in Sources */,
+				FF451FF71D843A7300E54BD3 /* Util.swift in Sources */,
+				FF451FEE1D843A6A00E54BD3 /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -317,6 +424,7 @@
 		FF451FCE1D84388400E54BD3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -330,6 +438,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dk.ufd.Assembler;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
@@ -337,6 +446,7 @@
 		FF451FCF1D84388400E54BD3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -357,6 +467,7 @@
 		FF451FD11D84388400E54BD3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = AssemblerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
@@ -369,10 +480,27 @@
 		FF451FD21D84388400E54BD3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = AssemblerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = dk.ufd.AssemblerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
+			};
+			name = Release;
+		};
+		FF451FF01D843A6A00E54BD3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
+			};
+			name = Debug;
+		};
+		FF451FF11D843A6A00E54BD3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
 			};
@@ -403,6 +531,14 @@
 			buildConfigurations = (
 				FF451FD11D84388400E54BD3 /* Debug */,
 				FF451FD21D84388400E54BD3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		FF451FEF1D843A6A00E54BD3 /* Build configuration list for PBXNativeTarget "AssemblerCLI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FF451FF01D843A6A00E54BD3 /* Debug */,
+				FF451FF11D843A6A00E54BD3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};

@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "FF451FB81D84388400E54BD3"
-               BuildableName = "Assembler.framework"
-               BlueprintName = "Assembler"
+               BlueprintIdentifier = "FF451FEA1D843A6A00E54BD3"
+               BuildableName = "AssemblerCLI"
+               BlueprintName = "AssemblerCLI"
                ReferencedContainer = "container:Assembler.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,23 +28,13 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "FF451FC11D84388400E54BD3"
-               BuildableName = "AssemblerTests.xctest"
-               BlueprintName = "AssemblerTests"
-               ReferencedContainer = "container:Assembler.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "FF451FB81D84388400E54BD3"
-            BuildableName = "Assembler.framework"
-            BlueprintName = "Assembler"
+            BlueprintIdentifier = "FF451FEA1D843A6A00E54BD3"
+            BuildableName = "AssemblerCLI"
+            BlueprintName = "AssemblerCLI"
             ReferencedContainer = "container:Assembler.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -61,15 +51,22 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "FF451FB81D84388400E54BD3"
-            BuildableName = "Assembler.framework"
-            BlueprintName = "Assembler"
+            BlueprintIdentifier = "FF451FEA1D843A6A00E54BD3"
+            BuildableName = "AssemblerCLI"
+            BlueprintName = "AssemblerCLI"
             ReferencedContainer = "container:Assembler.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-o /Users/ulrikdamm/Desktop/output.gb /Users/ulrikdamm/Desktop/program.asm"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -79,15 +76,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "FF451FB81D84388400E54BD3"
-            BuildableName = "Assembler.framework"
-            BlueprintName = "Assembler"
+            BlueprintIdentifier = "FF451FEA1D843A6A00E54BD3"
+            BuildableName = "AssemblerCLI"
+            BlueprintName = "AssemblerCLI"
             ReferencedContainer = "container:Assembler.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

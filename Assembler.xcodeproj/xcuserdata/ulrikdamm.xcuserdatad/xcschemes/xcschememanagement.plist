@@ -9,6 +9,11 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>AssemblerCLI.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
@@ -18,6 +23,11 @@
 			<true/>
 		</dict>
 		<key>FF451FC11D84388400E54BD3</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>FF451FEA1D843A6A00E54BD3</key>
 		<dict>
 			<key>primary</key>
 			<true/>
