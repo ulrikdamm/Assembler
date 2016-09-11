@@ -247,6 +247,7 @@ struct State {
 	
 	func getInstruction() throws -> (value : Instruction, state : State)? {
 		var state = ignoreWhitespace(allowNewline: true)
+		let line = state.line
 		
 		var operands : [Expression] = []
 		
@@ -267,7 +268,7 @@ struct State {
 		guard let newState2 = state.getSeparator() else { return nil }
 		state = newState2
 		
-		let instruction = Instruction(mnemonic: mnemonic, operands: operands)
+		let instruction = Instruction(mnemonic: mnemonic, operands: operands, line: line)
 		return (instruction, state)
 	}
 	

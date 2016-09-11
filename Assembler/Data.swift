@@ -9,6 +9,7 @@
 struct Instruction {
 	let mnemonic : String
 	let operands : [Expression]
+	let line : Int
 }
 
 extension Instruction : CustomStringConvertible {

@@ -326,7 +326,7 @@ struct Assembler {
 			case _: throw ErrorMessage("Unknown mnemonic \(instruction.mnemonic)")
 			}
 		} catch let error as ErrorMessage {
-			throw ErrorMessage("Error assembling instruction `\(instruction)`: \(error.message)")
+			throw ErrorMessage("Error assembling instruction on line \(instruction.line) `\(instruction)`: \(error.message)")
 		} catch let error {
 			throw error
 		}
