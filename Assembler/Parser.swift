@@ -99,24 +99,7 @@ struct State {
 		if let (c, state) = getChar(), c.isAlpha { return (String(c), state) }
 		return nil
 	}
-	
-	func getAlphaOrNumericChar() -> (value : String, state : State)? {
-		return getAlphaChar() ?? getNumericChar()
-	}
-	
-	func getString() -> (value : String, state : State)? {
-		var state = ignoreWhitespace()
-		var string = ""
 		
-		while let (char, newState) = state.getAlphaChar() {
-			string += char
-			state = newState
-		}
-		
-		guard string != "" else { return nil }
-		return (string, state)
-	}
-	
 	func getUntil(end : String) -> (value : String, state : State)? {
 		var state = self
 		var string = ""
@@ -130,19 +113,6 @@ struct State {
 			state = newState
 			string += String(c)
 		}
-	}
-	
-	func get(predicate : (State) -> (String, State)?) -> (value : String, state : State)? {
-		var state = ignoreWhitespace()
-		var string = ""
-		
-		while let (char, newState) = predicate(state) {
-			string += char
-			state = newState
-		}
-		
-		guard string != "" else { return nil }
-		return (string, state)
 	}
 	
 	func getIdentifier() -> (value : String, state : State)? {
@@ -172,6 +142,11 @@ struct State {
 			if let (c, newState) = newState.getChar(), c == "x" {
 				state = newState
 				return state.getHexNumber()
+			}
+			
+			if let (c, newState) = newState.getChar(), c == "b" {
+				state = newState
+				return state.getBinaryNumber()
 			}
 		}
 		
@@ -208,6 +183,23 @@ struct State {
 		return (Int(string)!, state)
 	}
 	
+	func getBinaryNumber() -> (value : Int, state : State)? {
+		var state = self
+		
+		guard let (char, newState) = state.getChar(), char == "0" || char == "1" else { return nil }
+		var string = String(char)
+		state = newState
+		
+		while let (char, newState) = state.getChar(), char == "0" || char == "1" || char == "_" {
+			state = newState
+			if char != "_" {
+				string += String(char)
+			}
+		}
+		
+		return (Int(string, radix: 2)!, state)
+	}
+	
 	func ignoreWhitespace(allowNewline : Bool = false) -> State {
 		guard let (char, state) = getChar(), char.isWhitespace || (allowNewline && char == "\n") else { return self }
 		return state.ignoreWhitespace(allowNewline: allowNewline)
@@ -222,10 +214,17 @@ struct State {
 		return state
 	}
 	
-	func getKeyword(keyword : String) -> State? {
-		guard let (string, state) = getString() else { return nil }
-		guard string == keyword else { return nil }
-		return state
+	func getStringLiteral() throws -> (value : String, state : State)? {
+		var state = ignoreWhitespace()
+		
+		guard let (c, newState1) = state.getChar(), c == "\"" else { return nil }
+		state = newState1
+		
+		guard let (string, newState2) = state.getUntil(end: "\"") else {
+			throw ParseError(reason: .expectedMatch(match: "\""), state)
+		}
+		
+		return (string, newState2)
 	}
 	
 	func getSeparator() -> State? {
@@ -233,16 +232,6 @@ struct State {
 		if state.atEnd { return state }
 		guard let (c, state1) = state.getChar(), c == "\n" || c == ";" else { return nil }
 		return state1.getSeparator() ?? state1
-	}
-	
-	func getStringLiteral() -> (value : String, state : State)? {
-		var state = ignoreWhitespace()
-		
-		guard let (c, newState1) = state.getChar(), c == "\"" else { return nil }
-		state = newState1
-		
-		guard let (string, newState2) = state.getUntil(end: "\"") else { return nil }
-		return (string, newState2)
 	}
 	
 	func getInstruction() throws -> (value : Instruction, state : State)? {
@@ -409,7 +398,7 @@ struct State {
 		if let (constant, newState1) = state.getIdentifier() {
 			state = newState1
 			expression = Expression.constant(constant)
-		} else if let (string, newState1) = state.getStringLiteral() {
+		} else if let (string, newState1) = try state.getStringLiteral() {
 			state = newState1
 			expression = .string(string)
 		} else if let (number, newState1) = state.getNumber() {
