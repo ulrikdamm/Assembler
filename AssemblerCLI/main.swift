@@ -57,7 +57,7 @@ do {
 } catch let error as ErrorMessage {
 	print(error.message)
 } catch let error as State.ParseError {
-	print("Error in source: \(error.localizedDescription)")
+	print(error.localizedDescription)
 } catch let error {
 	print(error.localizedDescription)
 }

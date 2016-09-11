@@ -17,40 +17,48 @@ struct State {
 		}
 		
 		let reason : Reason
-		let location : String.Index
+		let state : State
 		
 		init(reason : Reason, _ state : State) {
 			self.reason = reason
-			location = state.location
+			self.state = state
 		}
 		
 		var localizedDescription : String {
+			let message : String
+			
 			switch reason {
-			case .constantRedefinition(let constant): return "Constant `\(constant)` already defined"
-			case .expectedLabelOrDefine: return "Expected label or constant definition"
-			case .expectedSeparator: return "Expected end of instruction (newline or semicolon)"
-			case .expectedExpression: return "Expected value, register or expression"
-			case .expectedMatch(let match): return "Expected `\(match)`"
+			case .constantRedefinition(let constant): message = "Constant `\(constant)` already defined"
+			case .expectedLabelOrDefine: message = "Expected label or constant definition"
+			case .expectedSeparator: message = "Expected end of instruction (newline or semicolon)"
+			case .expectedExpression: message = "Expected value, register or expression"
+			case .expectedMatch(let match): message = "Expected `\(match)`"
 			}
+			
+			return "Error on line \(state.line): \(message)"
 		}
 	}
 	
 	let source : String
 	let location : String.Index
+	let line : Int
 	
-	init(source : String, location : String.Index) {
+	init(source : String, location : String.Index, line : Int) {
 		self.source = source
 		self.location = location
+		self.line = line
 	}
 	
 	init(source : [String]) {
 		self.source = source.joined(separator: "\n")
 		self.location = self.source.startIndex
+		self.line = 1
 	}
 	
 	init(source : String) {
 		self.source = source
 		self.location = source.startIndex
+		self.line = 1
 	}
 	
 	var atEnd : Bool {
@@ -65,6 +73,7 @@ struct State {
 	func getChar(ignoreComments : Bool = true) -> (value : Character, state : State)? {
 		guard var next = getAt(location: location) else { return nil }
 		var nextLocation = source.index(after: location)
+		let lineBreaks = (next == "\n" ? 1 : 0)
 		
 		while next == "#" {
 			while true {
@@ -77,7 +86,7 @@ struct State {
 			}
 		}
 		
-		let state = State(source: source, location: nextLocation)
+		let state = State(source: source, location: nextLocation, line: line + lineBreaks)
 		return (next, state)
 	}
 	
