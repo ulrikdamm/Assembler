@@ -23,8 +23,7 @@ bg_tile_data = 0x9000
 
 [org(0x150)] main:
 	# Set LCDC (bit 7: operation on, bit 0: bg and win on)
-	ld h, 0xff
-	ld l, 0x40
+	ld hl, 0xff40
 	ld (hl), (1 | (1 << 7))
 
 	# Set first bg tile
@@ -36,22 +35,19 @@ bg_tile_data = 0x9000
 	ld h, (bg_tile_data >> 8)
 	ld l, ((bg_tile_data & 0xff) + 16)
 	ld b, 8
-	ld d, 0x40
-	ld e, 0x00
+	ld de, 0x4000
 	loop:
 		ld a, (de)
-		ld (hl), a
-		inc hl
-		ld (hl), a
-		inc hl
 		inc de
+		ld (hl+), a
+		ld (hl+), a
 		dec b
 		jp nz, loop
 
 	# Set bg palette data
-	ld h, 0xff
-	ld l, 0x47
+	ld hl, 0xff47
 	ld (hl), 0xe4
+	
 	end: jp end
 
 [org(0x7fff)] pad: db 0x00
@@ -69,18 +65,15 @@ It also contains a dynamic framework which you can import into a macOS or iOS ap
 • Assembly parsing  
 • Code generation  
 • Linking  
-• Most of the Gameboy instruction set  
-• Error reporting for the instruction assemling stage  
+• All of the Gameboy instruction set  
+• Error reporting with line numbers  
 • Command line interface  
 • Constant defines  
 • Build-time expressions  
 • Strings
 
 ### TODO
-
-• Error reporting for parsing stage  
-• Line numbers in error reporting  
-• Remaining Gameboy instructions  
+  
 • Using labels as expression values (e.g. in the smiley program, being able to say `ld de, graphics`)  
 • Graphical code editor  
 • Programs doesn't boot in all emulators (like OpenEmu)
