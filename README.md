@@ -74,6 +74,7 @@ It also contains a dynamic framework which you can import into a macOS or iOS ap
 • Command line interface  
 • Constant defines  
 • Build-time expressions  
+• Strings
 
 ### TODO
 
