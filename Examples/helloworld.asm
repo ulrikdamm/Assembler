@@ -5,7 +5,6 @@ bg_tile_map = 0x9800
 bg_tile_data = 0x9000
 alphabet_start_addr = 0x9000 + (0x41 * 16)
 
-# [org(0x4000)] graphics: db 0x00, 0x24, 0x24, 0x00, 0x81, 0x7e, 0x00, 0x00
 [org(0x4000)] message: db "HELLO WORLD"
 [org(0x4041)]
 letter_a: db 0x00, 0x18, 0x24, 0x24, 0x3c, 0x24, 0x24, 0x24
@@ -39,30 +38,21 @@ letter_z: db 0x00, 0x3c, 0x04, 0x04, 0x18, 0x20, 0x20, 0x3c
 
 [org(0x150)] main:
   # Set LCDC (bit 7: operation on, bit 0: bg and win on)
-  ld h, 0xff
-  ld l, 0x40
+  ld hl, 0xff40
   ld (hl), (1 | (1 << 7))
   
-  # ld hl, bg_tile_data
-  ld l, (alphabet_start_addr & 0xff)
-  ld h, (alphabet_start_addr >> 8)
-  ld d, 25
-  ld e, 16
-  ld b, 0x40
-  ld c, 0x41
+  ld hl, alphabet_start_addr
+  ld de, 25 * (8 * 8)
+  ld bc, 0x4041
   call copy_bytes_twice
 
-  # ld hl, bg_tile_map
-  ld l, (bg_tile_map & 0xff)
-  ld h, (bg_tile_map >> 8)
-  ld b, 0x40
-  ld c, 0
+  ld hl, bg_tile_map
+  ld bc, 0x4000
   ld d, 11
   call copy_bytes
 
   # Set bg palette data
-  ld h, 0xff
-  ld l, 0x47
+  ld hl, 0xff47
   ld (hl), 0xe4
   end: jp end
 
@@ -71,8 +61,7 @@ letter_z: db 0x00, 0x3c, 0x04, 0x04, 0x18, 0x20, 0x20, 0x3c
 # hl: destination address
 copy_bytes:
   ld a, (bc)
-  ld (hl), a
-  inc hl
+  ld (hl+), a
   inc bc
   
   dec d
@@ -84,11 +73,9 @@ copy_bytes:
 # hl: destination address
 copy_bytes_twice:
   ld a, (bc)
-  ld (hl), a
-  inc hl
-  ld (hl), a
-  inc hl
   inc bc
+  ld (hl+), a
+  ld (hl+), a
   
   dec e
   jp nz, copy_bytes_twice
