@@ -4,7 +4,8 @@
 
 Small assembler for Gameboy assembly programs written in Swift.  
 Assembly syntax mostly follows other assemblers, but is probably not compatible.  
-Takes an assembly file as input, produces a binary, which can be executed in a Gameboy emulator.
+Takes an assembly file as input, produces a binary, which can be executed in a Gameboy emulator.  
+Is fairly feature complete, supports all of the instruction set. Still missing some nice-to-have features, see the todo below.
 
 ## Example program
 
@@ -53,6 +54,10 @@ bg_tile_data = 0x9000
 [org(0x7fff)] pad: db 0x00
 ```
 
+This is how it looks:
+
+![Smiley example screenshot](https://d17oy1vhnax1f7.cloudfront.net/items/0M0B1h160R3J0b3F3T1E/smiley.png?v=5b529869)
+
 ## Usage
 
 The project comes with a CLI application which you can invoke with "input/file.asm -o output/file.gb".  
@@ -73,10 +78,17 @@ It also contains a dynamic framework which you can import into a macOS or iOS ap
 • Strings
 
 ### TODO
-  
+
+• Imports and file modules  
 • Using labels as expression values (e.g. in the smiley program, being able to say `ld de, graphics`)  
+• Programs doesn't boot in all emulators (like OpenEmu)  
+
+### Wish list
+
+• More awesome example programs    
+• Disentanglement of code (the parsing module should be more generic for example)    
+• Sprite importer (manually entering pixel hex codes suck. Maybe a way of defining sprites in ASCII art?)  
 • Graphical code editor  
-• Programs doesn't boot in all emulators (like OpenEmu)
 
 ## Contributing
 
