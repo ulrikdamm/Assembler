@@ -52,3 +52,27 @@ public func assembleProgram(source : [String]) throws -> [UInt8] {
 		throw ErrorMessage("Couldn't parse source")
 	}
 }
+
+extension UInt16 {
+	static func fromInt(value : Int) throws -> UInt16 {
+		guard (0...0xffff).contains(value) else { throw ErrorMessage("Value out of range") }
+		return UInt16(value)
+	}
+	
+	var lsb : UInt8 { return UInt8(self & 0xff) }
+	var msb : UInt8 { return UInt8(self >> 8) }
+}
+
+extension UInt8 {
+	static func fromInt(value : Int) throws -> UInt8 {
+		guard (0...0xff).contains(value) else { throw ErrorMessage("Value out of range") }
+		return UInt8(value)
+	}
+}
+
+extension Int8 {
+	static func fromInt(value : Int) throws -> Int8 {
+		guard (-128...127).contains(value) else { throw ErrorMessage("Value out of signed byte range") }
+		return Int8(value)
+	}
+}

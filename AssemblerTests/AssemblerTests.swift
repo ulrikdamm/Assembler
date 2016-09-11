@@ -79,7 +79,8 @@ class LoadTests : AssemblerTests {
 	func test_ld_sp_nn()	{ assert("ld sp, 0x1234",		[0x31, 0x34, 0x12]) }
 	
 	func test_ld_sp_hl()	{ assert("ld sp, hl",			[0xf9]) }
-	func test_ld_hl_spn()	{ assert("ld hl, sp - 20",		[0xf8, 0xec]) }
+	func test_ld_hl_spn1()	{ assert("ld hl, sp + 20",		[0xf8, 0x14]) }
+	func test_ld_hl_spn2()	{ assert("ld hl, sp - 20",		[0xf8, 0xec]) }
 	func test_ld_nn_sp()	{ assert("ld 0x1234, sp",		[0x08, 0x34, 0x12]) }
 }
 

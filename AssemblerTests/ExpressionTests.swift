@@ -55,4 +55,6 @@ class ExpressionReduceTests : ExpressionTests {
 	func testConstantParens()		{ assert(.parens(.constant("abc")), reducesTo: .parens(.constant("abc"))) }
 	func testAddStrings()			{ assert(.binaryExp(.string("abc"), "+", .string("def")), reducesTo: .string("abcdef")) }
 	func testRecursiveReduce()		{ assert(.parens(.parens(.parens(.parens(.binaryExp(.value(1), "+", .value(2)))))), reducesTo: .value(3)) }
+	func testPositiveValuePrefix()	{ assert(.prefix("+", .value(123)), reducesTo: .value(123)) }
+	func testNegativeValuePrefix()	{ assert(.prefix("-", .value(123)), reducesTo: .value(-123)) }
 }

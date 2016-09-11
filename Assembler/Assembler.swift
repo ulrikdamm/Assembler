@@ -53,6 +53,23 @@ struct Assembler {
 		}
 	}
 	
+	func assembleAdd(_ instruction : Instruction) throws -> [Opcode] {
+		let (operandLeft, operandRight) = try getTwoOperands(instruction: instruction)
+		
+		switch (operandLeft, operandRight) {
+		case (.constant("a"), _): return try assembleArithmeticOperation(instruction, mask: 0x80, directOpcode: 0xc6)
+		case (.constant("hl"), .constant("bc")): return [.byte(0x09)]
+		case (.constant("hl"), .constant("de")): return [.byte(0x19)]
+		case (.constant("hl"), .constant("hl")): return [.byte(0x29)]
+		case (.constant("hl"), .constant("sp")): return [.byte(0x39)]
+		case (.constant("sp"), .value(let n)):
+			guard (-128...127).contains(n) else { throw ErrorMessage("Value outside of bounds for signed byte") }
+			return [.byte(0xe8), .byte(UInt8(bitPattern: Int8(n)))]
+		case (.constant(let left), .constant(let right)): throw ErrorMessage("Unable to add `\(left)` and `\(right)`")
+		case _: throw ErrorMessage("Invalid operands to add")
+		}
+	}
+	
 	func assembleArithmeticOperation(_ instruction : Instruction, mask : UInt8, directOpcode : UInt8) throws -> [Opcode] {
 		let (operandA, operandR) = try getTwoOperands(instruction: instruction)
 		guard case .constant("a") = operandA else { throw ErrorMessage("Can only be register A") }
@@ -241,27 +258,67 @@ struct Assembler {
 	func assembleLd(_ instruction : Instruction) throws -> [Opcode] {
 		let (to, from) = try getTwoOperands(instruction: instruction)
 		
+		switch (to, from) {
+		case (.constant("a"), .parens(.constant("bc"))): return [.byte(0x0a)]
+		case (.constant("a"), .parens(.constant("de"))): return [.byte(0x1a)]
+		case (.parens(.constant("bc")), .constant("a")): return [.byte(0x02)]
+		case (.parens(.constant("de")), .constant("a")): return [.byte(0x12)]
+		case (.constant("a"), .parens(.binaryExp(.value(0xff00), "+", .constant("c")))): return [.byte(0xf2)]
+		case (.parens(.binaryExp(.value(0xff00), "+", .constant("c"))), .constant("a")): return [.byte(0xe2)]
+		case (.constant("sp"), .constant("hl")): return [.byte(0xf9)]
+		case (.constant("hl"), .binaryExp(.constant("sp"), "+", .value(let n))):
+			let n8 = try Int8.fromInt(value: n)
+			return [.byte(0xf8), .byte(UInt8(bitPattern: n8))]
+		case (.constant("hl"), .binaryExp(.constant("sp"), "-", .value(let n))):
+			let n8 = try Int8.fromInt(value: -n)
+			return [.byte(0xf8), .byte(UInt8(bitPattern: n8))]
+		case (.value(let n), .constant("sp")):
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0x08), .byte(n16.lsb), .byte(n16.msb)]
+		case (.constant("a"), .value(let n)) where n >= 0xff00:
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0xf0), .byte(n16.lsb)]
+		case (.value(let n), .constant("a")) where n >= 0xff00:
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0xe0), .byte(n16.lsb)]
+		case (.constant("a"), .value(let n)) where n > 0xff:
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0xfa), .byte(n16.lsb), .byte(n16.msb)]
+		case (.value(let n), .constant("a")) where n > 0xff:
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0xea), .byte(n16.lsb), .byte(n16.msb)]
+		case (.constant("a"), .parens(.suffix(.constant("hl"), "+"))): return [.byte(0x2a)]
+		case (.constant("a"), .parens(.suffix(.constant("hl"), "-"))): return [.byte(0x3a)]
+		case (.parens(.suffix(.constant("hl"), "+")), .constant("a")): return [.byte(0x22)]
+		case (.parens(.suffix(.constant("hl"), "-")), .constant("a")): return [.byte(0x32)]
+		case (.constant("bc"), .value(let n)):
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0x01), .byte(n16.lsb), .byte(n16.msb)]
+		case (.constant("de"), .value(let n)):
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0x11), .byte(n16.lsb), .byte(n16.msb)]
+		case (.constant("hl"), .value(let n)):
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0x21), .byte(n16.lsb), .byte(n16.msb)]
+		case (.constant("sp"), .value(let n)):
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0x31), .byte(n16.lsb), .byte(n16.msb)]
+		case _: break
+		}
+		
 		if let toReg = try? getRegister8Value(operand: to) {
 			if let fromReg = try? getRegister8Value(operand: from) {
 				if fromReg == 6 && toReg == 6 { throw ErrorMessage("Cannot load between (HL) and (HL)") }
 				return [.byte(0x40 | (toReg << 3) | fromReg)]
 			}
 			
-			switch from {
-			case .value(let n):
+			if case .value(let n) = from {
 				guard (0...0xff).contains(n) else { throw ErrorMessage("Value of out range for one byte") }
 				return [.byte(0x06 | (toReg << 3)), .byte(UInt8(n))]
-			case .parens(.constant("bc")): return [.byte(0x0a)]
-			case .parens(.constant("de")): return [.byte(0x1a)]
-			case _: throw ErrorMessage("Invalid load source: \(from))") 
-			}
-		} else {
-			switch (to, from) {
-			case (.parens(.constant("bc")), .constant("a")): return [.byte(0x02)]
-			case (.parens(.constant("de")), .constant("a")): return [.byte(0x12)]
-			case _: throw ErrorMessage("Invalid load from \(from) to \(to)")
 			}
 		}
+		
+		throw ErrorMessage("Invalid load from \(from) to \(to)")
 	}
 	
 	func assembleSpecial(_ instruction : Instruction, result : [UInt8]) throws -> [Opcode] {
@@ -277,7 +334,7 @@ struct Assembler {
 			case "and": return try assembleLogicOperation(instruction, mask: 0xa0, directOpcode: 0xe6)
 			case "cp": return try assembleLogicOperation(instruction, mask: 0xb8, directOpcode: 0xfe)
 				
-			case "add": return try assembleArithmeticOperation(instruction, mask: 0x80, directOpcode: 0xc6)
+			case "add": return try assembleAdd(instruction)
 			case "adc": return try assembleArithmeticOperation(instruction, mask: 0x88, directOpcode: 0xce)
 			case "sub": return try assembleArithmeticOperation(instruction, mask: 0x90, directOpcode: 0xd6)
 			case "sbc": return try assembleArithmeticOperation(instruction, mask: 0x98, directOpcode: 0xde)
