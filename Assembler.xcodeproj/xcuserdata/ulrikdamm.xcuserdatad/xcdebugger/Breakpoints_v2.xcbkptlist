@@ -22,31 +22,31 @@
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "static AssemblerCLI.Linker.link (blocks : Swift.Array&lt;AssemblerCLI.Linker.Block&gt;) throws -&gt; Swift.Array&lt;Swift.UInt8&gt;"
-                  moduleName = "AssemblerCLI"
+                  symbolName = "static Assembler.Linker.link (blocks : Swift.Array&lt;Assembler.Linker.Block&gt;) throws -&gt; Swift.Array&lt;Swift.UInt8&gt;"
+                  moduleName = "Assembler"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/ulrikdamm/Developer/Assembler/Assembler/Linker.swift"
-                  timestampString = "495240295.411061"
+                  timestampString = "495277883.044446"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "40"
                   endingLineNumber = "40"
-                  offsetFromSymbolStart = "1708">
+                  offsetFromSymbolStart = "1833">
                </Location>
                <Location
                   shouldBeEnabled = "Yes"
                   ignoreCount = "0"
                   continueAfterRunningActions = "No"
-                  symbolName = "static AssemblerCLI.Linker.link (blocks : Swift.Array&lt;AssemblerCLI.Linker.Block&gt;) throws -&gt; Swift.Array&lt;Swift.UInt8&gt;"
-                  moduleName = "AssemblerCLI"
+                  symbolName = "static Assembler.Linker.link (blocks : Swift.Array&lt;Assembler.Linker.Block&gt;) throws -&gt; Swift.Array&lt;Swift.UInt8&gt;"
+                  moduleName = "Assembler"
                   usesParentBreakpointCondition = "Yes"
                   urlString = "file:///Users/ulrikdamm/Developer/Assembler/Assembler/Linker.swift"
-                  timestampString = "495240295.416261"
+                  timestampString = "495277883.047251"
                   startingColumnNumber = "9223372036854775807"
                   endingColumnNumber = "9223372036854775807"
                   startingLineNumber = "40"
                   endingLineNumber = "40"
-                  offsetFromSymbolStart = "2001">
+                  offsetFromSymbolStart = "2126">
                </Location>
             </Locations>
          </BreakpointContent>

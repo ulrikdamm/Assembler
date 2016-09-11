@@ -29,9 +29,8 @@ extension Expression {
 			if case .value(let v) = inner { return .value(v) }
 			return .parens(inner)
 		case .binaryExp(let left, let op, let right):
-			let leftReduced = left.reduce()
-			let rightReduced = right.reduce()
-			if case (.value(let leftValue), .value(let rightValue)) = (leftReduced,  rightReduced) {
+			switch (left.reduce(), op, right.reduce()) {
+			case (.value(let leftValue), _, .value(let rightValue)):
 				switch op {
 				case "+": return .value(leftValue + rightValue)
 				case "-": return .value(leftValue - rightValue)
@@ -41,21 +40,13 @@ extension Expression {
 				case "|": return .value(leftValue | rightValue)
 				case ">>": return .value(leftValue >> rightValue)
 				case "<<": return .value(leftValue << rightValue)
-				default: return .binaryExp(leftReduced, op, rightReduced)
+				default: return .binaryExp(.value(leftValue), op, .value(rightValue))
 				}
-			} else {
+			case (.string(let leftString), "+", .string(let rightString)):
+				return .string(leftString + rightString)
+			case (let leftReduced, _, let rightReduced):
 				return .binaryExp(leftReduced, op, rightReduced)
 			}
-			/*case .binaryExp(.value(let l), "+", .value(let r)): return .value(l + r)
-			case .binaryExp(.value(let l), "-", .value(let r)): return .value(l - r)
-			case .binaryExp(.value(let l), "*", .value(let r)): return .value(l * r)
-			case .binaryExp(.value(let l), "/", .value(let r)): return .value(l / r)
-			case .binaryExp(.value(let l), "%", .value(let r)): return .value(l % r)
-			case .binaryExp(.value(let l), "<<", .value(let r)): return .value(l << r)
-			case .binaryExp(.value(let l), ">>", .value(let r)): return .value(l >> r)
-			case .binaryExp(.value(let l), "|", .value(let r)): return .value(l | r)
-			case .binaryExp(.value(let l), "&", .value(let r)): return .value(l & r)
-			case .binaryExp(let left, let str, let right): return .binaryExp(left.reduce(), str, right.reduce())*/
 		}
 	}
 	
@@ -93,6 +84,21 @@ extension Expression : CustomStringConvertible, CustomDebugStringConvertible {
 		case .suffix(let expr, let str): return "<suf: \(expr)<\(str)>>"
 		case .parens(let expr): return "<p: \(expr)>"
 		case .binaryExp(let left, let str, let right): return "<be: \(left)<\(str)>\(right)>"
+		}
+	}
+}
+
+extension Expression : Equatable {
+	static func ==(lhs : Expression, rhs : Expression) -> Bool {
+		switch (lhs, rhs) {
+		case (.value(let v1), .value(let v2)) where v1 == v2: return true
+		case (.string(let str1), .string(let str2)) where str1 == str2: return true
+		case (.constant(let str1), .constant(let str2)) where str1 == str2: return true
+		case (.prefix(let str1, let expr1), .prefix(let str2, let expr2)) where str1 == str2 && expr1 == expr2: return true
+		case (.suffix(let expr1, let str1), .suffix(let expr2, let str2)) where str1 == str2 && expr1 == expr2: return true
+		case (.parens(let expr1), .parens(let expr2)) where expr1 == expr2: return true
+		case (.binaryExp(let left1, let str1, let right1), .binaryExp(let left2, let str2, let right2)) where left1 == left2 && str1 == str2 && right1 == right2: return true
+		case _: return false
 		}
 	}
 }
