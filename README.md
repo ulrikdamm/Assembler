@@ -1,6 +1,4 @@
-# Gameboy Assembler
-
-**work in progress**
+# Gameboy Assembler v1.0
 
 Small assembler for Gameboy assembly programs written in Swift.  
 Assembly syntax mostly follows other assemblers, but is probably not compatible.  
@@ -60,35 +58,37 @@ This is how it looks:
 
 ## Usage
 
-The project comes with a CLI application which you can invoke with "input/file.asm -o output/file.gb".  
+The project comes with a CLI application which you can invoke with `input/file.asm -o output/file.gb`.  
 It also contains a dynamic framework which you can import into a macOS or iOS app.
 
 ## Project status
 
+Version 1.0 of the project has been released, and contains all core features for the assembler! See below for which features are implemented, and which are still to come.
+
 ### Implemented features
 
-• Assembly parsing  
-• Code generation  
-• Linking  
-• All of the Gameboy instruction set  
-• Error reporting with line numbers  
-• Command line interface  
-• Constant defines  
-• Build-time expressions  
-• Strings
+✅ Assembly parsing  
+✅ Code generation  
+✅ Linking  
+✅ All of the Gameboy instruction set  
+✅ Error reporting with line numbers  
+✅ Command line interface  
+✅ Constant defines  
+✅ Build-time expressions  
+✅ Strings
 
 ### TODO
 
-• Imports and file modules  
-• Using labels as expression values (e.g. in the smiley program, being able to say `ld de, graphics`)  
-• Programs doesn't boot in all emulators (like OpenEmu)  
+➡️ Imports and file modules  
+➡️ Using labels as expression values (e.g. in the smiley program, being able to say `ld de, graphics`)  
+➡️ Programs doesn't boot in all emulators (like OpenEmu)  
 
 ### Wish list
 
-• More awesome example programs    
-• Disentanglement of code (the parsing module should be more generic for example)    
-• Sprite importer (manually entering pixel hex codes suck. Maybe a way of defining sprites in ASCII art?)  
-• Graphical code editor  
+💟 More awesome example programs    
+💟 Disentanglement of code (the parsing module should be more generic for example)    
+💟 Sprite importer (manually entering pixel hex codes suck. Maybe a way of defining sprites in ASCII art?)  
+💟 Graphical code editor  
 
 ## Contributing
 
