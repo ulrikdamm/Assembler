@@ -11,9 +11,17 @@ import XCTest
 
 class ExpressionTests : XCTestCase {
 	func assert(_ code : String, parsesAs output : Expression) {
-		guard let result = State(source: code).getExpression()?.value else {
-			XCTFail("Couldn't parse expression: `\(code)`")
-			return
+		let result : Expression
+		
+		do {
+			guard let r = try State(source: code).getExpression()?.value else {
+				XCTFail("Couldn't parse expression: `\(code)`"); return
+			}
+			result = r
+		} catch let error as State.ParseError {
+			XCTFail("Couldn't parse expression: `\(error.localizedDescription)`"); return
+		} catch let error {
+			XCTFail("Couldn't parse expression: `\(error)`"); return
 		}
 		
 		XCTAssertEqual(output, result, "Wrong result: `\(result.debugDescription)`, expected `\(output.debugDescription)`")

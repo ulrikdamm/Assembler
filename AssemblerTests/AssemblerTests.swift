@@ -13,9 +13,17 @@ class AssemblerTests : XCTestCase {
 	let assembler = Assembler(constants: [:])
 	
 	func assert(_ code : String, _ output : [UInt8]) {
-		guard let ins = State(source: code).getInstruction()?.value else {
-			XCTFail("Couldn't compile: \(code)")
-			return
+		let ins : Instruction
+		
+		do {
+			guard let i = try State(source: code).getInstruction()?.value else {
+				XCTFail("Couldn't compile: \(code)"); return
+			}
+			ins = i
+		} catch let error as State.ParseError {
+			XCTFail("Couldn't compile: \(error.localizedDescription)"); return
+		} catch let error {
+			XCTFail("Couldn't compile: \(error)"); return
 		}
 		
 		let result : [Opcode]
