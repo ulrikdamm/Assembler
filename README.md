@@ -54,7 +54,7 @@ bg_tile_data = 0x9000
 
 This is how it looks:
 
-![Smiley example screenshot](https://d17oy1vhnax1f7.cloudfront.net/items/0M0B1h160R3J0b3F3T1E/smiley.png?v=5b529869)
+![Smiley example screenshot](https://d17oy1vhnax1f7.cloudfront.net/items/2t2s3q1J3E3Y2Z3e2p1D/smiley.png?v=dff06f03)
 
 ## Usage
 
