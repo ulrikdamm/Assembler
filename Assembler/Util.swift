@@ -36,7 +36,7 @@ func assembleBlock(label : Label, constants : [String: Expression]) throws -> Li
 	}
 	
 	let block = Linker.Block(
-		name: label.identifier,
+		name: label.identifier.lowercased(),
 		origin: origin,
 		data: Array(data.joined())
 	)
