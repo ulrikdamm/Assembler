@@ -5,6 +5,12 @@ bg_tile_map = 0x9800
 bg_tile_data = 0x9000
 alphabet_start_addr = 0x9000 + (0x41 * 16)
 
+lcdc = 0xff40
+lcdc_operation_bit = (1 << 7)
+lcdc_gbwin_on_bit = (1 << 0)
+ly = 0xff44
+palette = 0xff47
+
 [org(0x4000)] message: db "HELLO WORLD"
 [org(0x4041)]
 letter_a: db 0x00, 0x18, 0x24, 0x24, 0x3c, 0x24, 0x24, 0x24
@@ -33,13 +39,15 @@ letter_w: db 0x00, 0x52, 0x52, 0x52, 0x52, 0x52, 0x52, 0x2c
 letter_x: db 0x00, 0x22, 0x22, 0x14, 0x08, 0x14, 0x22, 0x22
 letter_y: db 0x00, 0x22, 0x22, 0x14, 0x08, 0x08, 0x08, 0x08
 letter_z: db 0x00, 0x3c, 0x04, 0x04, 0x18, 0x20, 0x20, 0x3c
+
 [org(0x100)] start: nop; jp main
-[org(0x134)] game_title: db "HELLOWRLD"
+[org(0x134)] game_title: db "HELLO WORLD"
 
 [org(0x150)] main:
-  # Set LCDC (bit 7: operation on, bit 0: bg and win on)
-  ld hl, 0xff40
-  ld (hl), (1 | (1 << 7))
+  ld sp, 0xfffe
+  di
+  
+  call stopLCD
   
   ld hl, alphabet_start_addr
   ld de, 25 * (8 * 8)
@@ -50,11 +58,28 @@ letter_z: db 0x00, 0x3c, 0x04, 0x04, 0x18, 0x20, 0x20, 0x3c
   ld bc, 0x4000
   ld d, 11
   call copy_bytes
-
+  
   # Set bg palette data
-  ld hl, 0xff47
-  ld (hl), 0xe4
+  ld a, 0xe4
+  ld (palette), a
+  
+  call startLCD
+  
   end: jp end
+
+# Wait until it's safe to update the screen and then disable LCD operation
+stopLCD:
+  ld a, (ly)
+  cp 145
+  jp nc, stopLCD
+  ld a, (lcdc_gbwin_on_bit)
+  ld (lcdc), a
+  ret
+
+startLCD:
+  ld a, (lcdc_gbwin_on_bit | lcdc_operation_bit)
+  ld (lcdc), a
+  ret
 
 # d: number of bytes
 # bc: start address

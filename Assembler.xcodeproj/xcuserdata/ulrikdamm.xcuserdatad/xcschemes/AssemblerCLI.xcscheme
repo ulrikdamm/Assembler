@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-o /Users/ulrikdamm/Desktop/smiley.gb /Users/ulrikdamm/Developer/Assembler/Examples/smiley.asm"
+            argument = "-o /Users/ulrikdamm/Desktop/helloworld.gb /Users/ulrikdamm/Developer/Assembler/Examples/helloworld.asm"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

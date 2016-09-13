@@ -81,7 +81,8 @@ Version 1.0 of the project has been released, and contains all core features for
 
 ➡️ Imports and file modules  
 ➡️ Using labels as expression values (e.g. in the smiley program, being able to say `ld de, graphics`)  
-➡️ Programs doesn't boot in all emulators (like OpenEmu)  
+➡️ Smart layout of disconnected blocks in linker  
+➡️ Optional linker symbols file output  
 
 ### Wish list
 
