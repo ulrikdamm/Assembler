@@ -18,8 +18,8 @@ class LinkerTests : XCTestCase {
 	static let simpleExpression = Expression.binaryExp(.value(2), "+", .value(3))
 	static let labelExpression = Expression.binaryExp(.constant("block2"), "+", .value(2))
 	
-	let block5 = Linker.Block(name: "block5", origin: nil, data: [.byte(0x09), .expression(expression: LinkerTests.simpleExpression, byteLength: 1)])
-	let block6 = Linker.Block(name: "block6", origin: nil, data: [.byte(0x0a), .expression(expression: LinkerTests.labelExpression, byteLength: 2)])
+	let block5 = Linker.Block(name: "block5", origin: nil, data: [.byte(0x09), .expression(LinkerTests.simpleExpression)])
+	let block6 = Linker.Block(name: "block6", origin: nil, data: [.byte(0x0a), .expression(LinkerTests.labelExpression)])
 	
 	func testCreateBasicAllocations() {
 		let linker = Linker(blocks: [block1, block2])
@@ -92,7 +92,7 @@ class LinkerTests : XCTestCase {
 	func testLinkSimpleExpression() {
 		let linker = Linker(blocks: [block1, block5])
 		let data = try! linker.link()
-		XCTAssertEqual(data, [1, 2, 3, 9, 5])
+		XCTAssertEqual(data, [1, 2, 3, 9, 5, 0])
 	}
 	
 	func testLinkLabelExpression() {

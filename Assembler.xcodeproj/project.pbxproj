@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		FF0C7D341D854E6100E6161B /* ExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0C7D331D854E6100E6161B /* ExpressionTests.swift */; };
+		FF1923C21D8C687300890EFF /* IntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1923C11D8C687300890EFF /* IntegrationTests.swift */; };
 		FF451FC31D84388400E54BD3 /* Assembler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FF451FB91D84388400E54BD3 /* Assembler.framework */; };
 		FF451FD91D84389800E54BD3 /* Assembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD31D84389800E54BD3 /* Assembler.swift */; };
 		FF451FDB1D84389800E54BD3 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD41D84389800E54BD3 /* Data.swift */; };
@@ -51,6 +52,7 @@
 
 /* Begin PBXFileReference section */
 		FF0C7D331D854E6100E6161B /* ExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExpressionTests.swift; sourceTree = "<group>"; };
+		FF1923C11D8C687300890EFF /* IntegrationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IntegrationTests.swift; sourceTree = "<group>"; };
 		FF451FB91D84388400E54BD3 /* Assembler.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Assembler.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF451FBD1D84388400E54BD3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		FF451FC21D84388400E54BD3 /* AssemblerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AssemblerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -135,6 +137,7 @@
 				FF0C7D331D854E6100E6161B /* ExpressionTests.swift */,
 				FFDD34BC1D856EC100B09D03 /* ParserTests.swift */,
 				FFEBFE9F1D8BFFC400FCFDB3 /* LinkerTests.swift */,
+				FF1923C11D8C687300890EFF /* IntegrationTests.swift */,
 				FF451FC91D84388400E54BD3 /* Info.plist */,
 			);
 			path = AssemblerTests;
@@ -295,6 +298,7 @@
 			files = (
 				FFEBFEA01D8BFFC400FCFDB3 /* LinkerTests.swift in Sources */,
 				FF0C7D341D854E6100E6161B /* ExpressionTests.swift in Sources */,
+				FF1923C21D8C687300890EFF /* IntegrationTests.swift in Sources */,
 				FF451FE61D8438A500E54BD3 /* AssemblerTests.swift in Sources */,
 				FFDD34BD1D856EC100B09D03 /* ParserTests.swift in Sources */,
 			);

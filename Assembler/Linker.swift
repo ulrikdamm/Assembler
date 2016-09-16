@@ -8,22 +8,25 @@
 
 enum Opcode : CustomStringConvertible {
 	case byte(UInt8)
+	case word(UInt16)
 	case label(String)
-	case expression(expression : Expression, byteLength : Int)
+	case expression(Expression)
 	
 	var description : String {
 		switch self {
 		case .byte(let b): return String(b, radix: 16)
+		case .word(let w): return String(w, radix: 16)
 		case .label(let name): return name
-		case .expression(let expr, _): return expr.description
+		case .expression(let expr): return expr.description
 		}
 	}
 	
 	var byteLength : Int {
 		switch self {
 		case .byte(_): return 1
+		case .word(_): return 2
 		case .label(_): return 2
-		case .expression(_, let length): return length
+		case .expression(_): return 2
 		}
 	}
 	
@@ -37,8 +40,9 @@ extension Opcode : Equatable {
 	static func ==(lhs : Opcode, rhs : Opcode) -> Bool {
 		switch (lhs, rhs) {
 		case (.byte(let nl), .byte(let nr)) where nl == nr: return true
+		case (.word(let nl), .word(let nr)) where nl == nr: return true
 		case (.label(let sl), .label(let sr)) where sl == sr: return true
-		case (.expression(let el, let ll), .expression(let er, let lr)) where el == er && ll == lr: return true
+		case (.expression(let el), .expression(let er)) where el == er: return true
 		case _: return false
 		}
 	}
@@ -76,6 +80,10 @@ struct Linker {
 				case .byte(let n):
 					data[allocation.start + offset] = n
 					offset += 1
+				case .word(let n):
+					data[allocation.start + offset] = n.lsb
+					data[allocation.start + offset + 1] = n.msb
+					offset += 2
 				case .label(let name):
 					if let start = blockStart(name: name) {
 						let n16 = try UInt16.fromInt(value: start)
@@ -85,26 +93,17 @@ struct Linker {
 					} else {
 						throw ErrorMessage("Unknown label ’\(name)‘")
 					}
-				case .expression(let expr, let length):
+				case .expression(let expr):
 					let mapped = try expr.mapSubExpressions(map: replaceExpressionLabelValue)
 					let reduced = mapped.reduce()
-					guard case .value(let value) = reduced else { throw ErrorMessage("Invalid value `\(reduced)`") }
-					
-					switch (value, length) {
-					case (let v, 1) where v < 0:
-						data[allocation.start + offset] = UInt8(bitPattern: try Int8.fromInt(value: v))
-						offset += 1
-					case (_, 1):
-						data[allocation.start + offset] = try UInt8.fromInt(value: value)
-						offset += 1
-					case (_, 2):
-						let n16 = try UInt16.fromInt(value: value)
-						data[allocation.start + offset] = n16.lsb
-						data[allocation.start + offset + 1] = n16.msb
-						offset += 2
-					case (_, 2): throw ErrorMessage("Value \(value) out of range")
-					case _: throw ErrorMessage("Invalid opcode length (can only be one or two bytes)")
+					guard case .value(let value) = reduced else {
+						throw ErrorMessage("Invalid value `\(reduced)`")
 					}
+					
+					let n16 = try UInt16.fromInt(value: value)
+					data[allocation.start + offset] = n16.lsb
+					data[allocation.start + offset + 1] = n16.msb
+					offset += 2
 				}	
 			}
 		}

@@ -275,34 +275,26 @@ struct Assembler {
 		case (.value(let n), .constant("sp")):
 			let n16 = try UInt16.fromInt(value: n)
 			return [.byte(0x08), .byte(n16.lsb), .byte(n16.msb)]
-		case (.constant("a"), .value(let n)) where n >= 0xff00:
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0xf0), .byte(n16.lsb)]
-		case (.value(let n), .constant("a")) where n >= 0xff00:
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0xe0), .byte(n16.lsb)]
-		case (.constant("a"), .value(let n)) where n > 0xff:
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0xfa), .byte(n16.lsb), .byte(n16.msb)]
-		case (.value(let n), .constant("a")) where n > 0xff:
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0xea), .byte(n16.lsb), .byte(n16.msb)]
+//		case (.constant("a"), .value(let n)) where n >= 0xff00:
+//			let n16 = try UInt16.fromInt(value: n)
+//			return [.byte(0xf0), .byte(n16.lsb)]
+//		case (.value(let n), .constant("a")) where n >= 0xff00:
+//			let n16 = try UInt16.fromInt(value: n)
+//			return [.byte(0xe0), .byte(n16.lsb)]
+//		case (.constant("a"), .value(let n)) where n > 0xff:
+//			let n16 = try UInt16.fromInt(value: n)
+//			return [.byte(0xfa), .byte(n16.lsb), .byte(n16.msb)]
+//		case (.value(let n), .constant("a")) where n > 0xff:
+//			let n16 = try UInt16.fromInt(value: n)
+//			return [.byte(0xea), .byte(n16.lsb), .byte(n16.msb)]
 		case (.constant("a"), .parens(.suffix(.constant("hl"), "+"))): return [.byte(0x2a)]
 		case (.constant("a"), .parens(.suffix(.constant("hl"), "-"))): return [.byte(0x3a)]
 		case (.parens(.suffix(.constant("hl"), "+")), .constant("a")): return [.byte(0x22)]
 		case (.parens(.suffix(.constant("hl"), "-")), .constant("a")): return [.byte(0x32)]
-		case (.constant("bc"), .value(let n)):
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0x01), .byte(n16.lsb), .byte(n16.msb)]
-		case (.constant("de"), .value(let n)):
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0x11), .byte(n16.lsb), .byte(n16.msb)]
-		case (.constant("hl"), .value(let n)):
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0x21), .byte(n16.lsb), .byte(n16.msb)]
-		case (.constant("sp"), .value(let n)):
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0x31), .byte(n16.lsb), .byte(n16.msb)]
+		case (.constant("bc"), let value): return try [.byte(0x01)] + assembleExpression16(from: value) 
+		case (.constant("de"), let value): return try [.byte(0x11)] + assembleExpression16(from: value)
+		case (.constant("hl"), let value): return try [.byte(0x21)] + assembleExpression16(from: value)
+		case (.constant("sp"), let value):  return try [.byte(0x31)] + assembleExpression16(from: value)
 		case _: break
 		}
 		
@@ -446,5 +438,36 @@ struct Assembler {
 		}
 		
 		return try instruction.operands.map { try expandExpressionConstants(expression: $0) }
+	}
+	
+	func assembleExpression8(from expression : Expression, signed : Bool) throws -> Opcode {
+		let reduced = expression.reduce()
+		switch reduced {
+		case .value(let value):
+			let n8 : UInt8
+			
+			if signed {
+				n8 = try UInt8(bitPattern: Int8.fromInt(value: value))
+			} else {
+				n8 = try UInt8.fromInt(value: value)
+			}
+			
+			return .byte(n8)
+		case .constant(let name): throw ErrorMessage("Unknown constant `\(name)`")
+		case _: throw ErrorMessage("Invalid 8 bit value: `\(expression)`")
+		}
+	}
+	
+	func assembleExpression16(from expression : Expression) throws -> [Opcode] {
+		let reduced = expression.reduce()
+		switch reduced {
+		case .value(let value):
+			let n16 = try UInt16.fromInt(value: value)
+			return [.byte(n16.lsb), .byte(n16.msb)]
+		case .constant(let name):
+			return [.label(name)]
+		case _:
+			return [.expression(expression)]
+		}
 	}
 }

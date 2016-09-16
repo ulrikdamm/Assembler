@@ -22,8 +22,16 @@ extension Expression {
 		case .value(let v): return .value(v)
 		case .string(let str): return .string(str)
 		case .constant(let str): return .constant(str)
-		case .prefix("+", .value(let n)): return .value(n)
-		case .prefix("-", .value(let n)): return .value(-n)
+		case .prefix("+", let expr):
+			switch expr.reduce() {
+			case .value(let n): return .value(n)
+			case let reduced: return .prefix("+", reduced)
+			}
+		case .prefix("-", let expr):
+			switch expr.reduce() {
+			case .value(let n): return .value(-n)
+			case let reduced: return .prefix("-", reduced)
+			}
 		case .prefix(let str, let expr): return .prefix(str, expr.reduce())
 		case .suffix(let expr, let str): return .suffix(expr.reduce(), str)
 		case .parens(let expr):

@@ -12,7 +12,7 @@ import XCTest
 class AssemblerTests : XCTestCase {
 	let assembler = Assembler(constants: [:])
 	
-	func assert(_ code : String, _ output : [UInt8]) {
+	func assert(_ code : String, _ output : [Opcode]) {
 		let ins : Instruction
 		
 		do {
@@ -35,9 +35,11 @@ class AssemblerTests : XCTestCase {
 			return
 		}
 		
-		let outputBytes = output.map { Opcode.byte($0) }
-		
-		XCTAssertEqual(result, outputBytes, "Incorrect output: \(result)")
+		XCTAssertEqual(result, output, "Incorrect output: \(result)")
+	}
+	
+	func assert(_ code : String, _ output : [UInt8]) {
+		assert(code, output.map { .byte($0) })
 	}
 }
 
@@ -56,12 +58,11 @@ class LoadTests : AssemblerTests {
 	func test_ld_a_bc()		{ assert("ld a, (bc)",			[0x0a]) }
 	func test_ld_a_hl8()	{ assert("ld a, (hl)",			[0x7e]) }
 	func test_ld_a_1234()	{ assert("ld a, (0x1234)",		[0xfa, 0x34, 0x12]) }
-	func test_ld_a_dma()	{ assert("ld (0x1234), a",		[0xea, 0x34, 0x12]) }
+	func test_ld_1234_a()	{ assert("ld (0x1234), a",		[0xea, 0x34, 0x12]) }
 	func test_ld_a_ff()		{ assert("ld a, 0xff",			[0x3e, 0xff]) }
 	
 	func test_ld_bc8_a()	{ assert("ld (bc), a",			[0x02]) }
 	func test_ld_hl8_a()	{ assert("ld (hl), a",			[0x77]) }
-	func test_ld_1234_a()	{ assert("ld (0x1234), a",		[0xea, 0x34, 0x12]) }
 	
 	func test_ld_a_ch()		{ assert("ld a, (0xff00 + c)",	[0xf2]) }
 	func test_ld_ch_a()		{ assert("ld (0xff00 + c), a",	[0xe2]) }
@@ -364,4 +365,15 @@ class JumpTests : AssemblerTests {
 	func test_ret_nc()		{ assert("ret nc",				[0xd0]) }
 	func test_ret_c()		{ assert("ret c",				[0xd8]) }
 	func test_reti()		{ assert("reti",				[0xd9]) }
+}
+
+class ExpressionOpcodeTests : AssemblerTests {
+	func test_label_ref()	{
+		assert("ld hl, label", [.byte(0x21), .label("label")])
+	}
+	
+	func test_expression()	{
+		let result = Expression.binaryExp(.constant("label"), "+", .value(1))
+		assert("ld hl, label + 1", [.byte(0x21), .expression(result)])
+	}
 }
