@@ -22,14 +22,14 @@ struct Arguments {
 		for argument in arguments {
 			switch (state, argument) {
 			case (.parseOutput, let string):
-				guard let url = URL(string: "file://" + string) else { throw ErrorMessage("Invalid output file path") }
+				let url = URL(fileURLWithPath: string)
 				guard outputURL == nil else { throw ErrorMessage("Output url redeclared") }
 				outputURL = url
 				state = .none
 			case (.none, "-o"):
 				state = .parseOutput
 			case (.none, let string):
-				guard let url = URL(string: "file://" + string) else { throw ErrorMessage("Invalid input file path") }
+				let url = URL(fileURLWithPath: string)
 				guard inputURL == nil else { throw ErrorMessage("Input url redeclared") }
 				inputURL = url
 			}
