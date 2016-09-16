@@ -24,6 +24,7 @@
 		FF451FF61D843A7300E54BD3 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD71D84389800E54BD3 /* Parser.swift */; };
 		FF451FF71D843A7300E54BD3 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD81D84389800E54BD3 /* Util.swift */; };
 		FFDD34BD1D856EC100B09D03 /* ParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFDD34BC1D856EC100B09D03 /* ParserTests.swift */; };
+		FFEBFEA01D8BFFC400FCFDB3 /* LinkerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFEBFE9F1D8BFFC400FCFDB3 /* LinkerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -64,6 +65,7 @@
 		FF451FEB1D843A6A00E54BD3 /* AssemblerCLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AssemblerCLI; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF451FED1D843A6A00E54BD3 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		FFDD34BC1D856EC100B09D03 /* ParserTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParserTests.swift; sourceTree = "<group>"; };
+		FFEBFE9F1D8BFFC400FCFDB3 /* LinkerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LinkerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +134,7 @@
 				FF451FE51D8438A500E54BD3 /* AssemblerTests.swift */,
 				FF0C7D331D854E6100E6161B /* ExpressionTests.swift */,
 				FFDD34BC1D856EC100B09D03 /* ParserTests.swift */,
+				FFEBFE9F1D8BFFC400FCFDB3 /* LinkerTests.swift */,
 				FF451FC91D84388400E54BD3 /* Info.plist */,
 			);
 			path = AssemblerTests;
@@ -290,6 +293,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FFEBFEA01D8BFFC400FCFDB3 /* LinkerTests.swift in Sources */,
 				FF0C7D341D854E6100E6161B /* ExpressionTests.swift in Sources */,
 				FF451FE61D8438A500E54BD3 /* AssemblerTests.swift in Sources */,
 				FFDD34BD1D856EC100B09D03 /* ParserTests.swift in Sources */,

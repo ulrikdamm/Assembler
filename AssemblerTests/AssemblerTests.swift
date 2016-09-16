@@ -56,6 +56,7 @@ class LoadTests : AssemblerTests {
 	func test_ld_a_bc()		{ assert("ld a, (bc)",			[0x0a]) }
 	func test_ld_a_hl8()	{ assert("ld a, (hl)",			[0x7e]) }
 	func test_ld_a_1234()	{ assert("ld a, (0x1234)",		[0xfa, 0x34, 0x12]) }
+	func test_ld_a_dma()	{ assert("ld (0x1234), a",		[0xea, 0x34, 0x12]) }
 	func test_ld_a_ff()		{ assert("ld a, 0xff",			[0x3e, 0xff]) }
 	
 	func test_ld_bc8_a()	{ assert("ld (bc), a",			[0x02]) }

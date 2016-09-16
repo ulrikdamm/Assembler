@@ -46,7 +46,7 @@ func assembleBlock(label : Label, constants : [String: Expression]) throws -> Li
 public func assembleProgram(source : [String]) throws -> [UInt8] {
 	if let program = try State(source: source).getProgram()?.value {
 		let blocks = try program.blocks.map { block in try assembleBlock(label: block, constants: program.constants) }
-		let bytes = try Linker.link(blocks: blocks)
+		let bytes = try Linker(blocks: blocks).link()
 		return bytes
 	} else {
 		throw ErrorMessage("Couldn't parse source")
