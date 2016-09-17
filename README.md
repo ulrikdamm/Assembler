@@ -65,6 +65,14 @@ It also contains a dynamic framework which you can import into a macOS or iOS ap
 
 Version 1.0 of the project has been released, and contains all core features for the assembler! See below for which features are implemented, and which are still to come.
 
+### New in version 1.1
+
+🆕 Ability to use labels in expressions (e.g. `ld a, (data_end - data)`)
+🆕 Fixed loading of values between A and memory addresses (e.g. `ld a, (0xff00 + 0x44)`)
+🆕 Allows empty labels (useful for the first point)
+🆕 Better command line interface, allows relative paths
+🆕 Updated examples
+
 ### Implemented features
 
 ✅ Assembly parsing  
@@ -80,7 +88,6 @@ Version 1.0 of the project has been released, and contains all core features for
 ### Todo
 
 ➡️ Imports and file modules  
-➡️ Using labels as expression values (e.g. in the smiley program, being able to say `ld de, graphics`)  
 ➡️ Smart layout of disconnected blocks in linker  
 ➡️ Optional linker symbols file output  
 
