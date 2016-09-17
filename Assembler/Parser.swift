@@ -270,7 +270,6 @@ struct State {
 			state = newState
 		}
 		
-		guard !instructions.isEmpty else { return nil }
 		return (instructions, state)
 	}
 	
