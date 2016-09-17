@@ -41,10 +41,17 @@ struct Arguments {
 		}
 		
 		guard let inputURLValue = inputURL else { throw ErrorMessage("Missing input") }
-		guard let outputURLValue = outputURL else { throw ErrorMessage("Missing output") }
-		
 		inputFile = inputURLValue
-		outputFile = outputURLValue
+		
+		if let outputURL = outputURL {
+			outputFile = outputURL
+		} else {
+			let filename = inputURLValue.deletingPathExtension().lastPathComponent 
+			outputFile = inputURLValue
+				.deletingLastPathComponent()
+				.appendingPathComponent(filename)
+				.appendingPathExtension("gb") 
+		}
 	}
 }
 
