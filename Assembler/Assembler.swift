@@ -264,18 +264,6 @@ struct Assembler {
 		case (.value(let n), .constant("sp")):
 			let n16 = try UInt16.fromInt(value: n)
 			return [.byte(0x08), .byte(n16.lsb), .byte(n16.msb)]
-//		case (.constant("a"), .value(let n)) where n >= 0xff00:
-//			let n16 = try UInt16.fromInt(value: n)
-//			return [.byte(0xf0), .byte(n16.lsb)]
-//		case (.value(let n), .constant("a")) where n >= 0xff00:
-//			let n16 = try UInt16.fromInt(value: n)
-//			return [.byte(0xe0), .byte(n16.lsb)]
-//		case (.constant("a"), .value(let n)) where n > 0xff:
-//			let n16 = try UInt16.fromInt(value: n)
-//			return [.byte(0xfa), .byte(n16.lsb), .byte(n16.msb)]
-//		case (.value(let n), .constant("a")) where n > 0xff:
-//			let n16 = try UInt16.fromInt(value: n)
-//			return [.byte(0xea), .byte(n16.lsb), .byte(n16.msb)]
 		case (.constant("a"), .parens(.suffix(.constant("hl"), "+"))): return [.byte(0x2a)]
 		case (.constant("a"), .parens(.suffix(.constant("hl"), "-"))): return [.byte(0x3a)]
 		case (.parens(.suffix(.constant("hl"), "+")), .constant("a")): return [.byte(0x22)]
@@ -287,16 +275,33 @@ struct Assembler {
 		case _: break
 		}
 		
+		switch (try getOperandRaw(instruction: instruction, index: 0), try getOperandRaw(instruction: instruction, index: 1)) {
+		case (.constant("a"), .parens(.binaryExp(.value(0xff00), "+", .value(let n)))):
+			let n8 = try UInt8.fromInt(value: n)
+			return [.byte(0xf0), .byte(n8)]
+		case (.parens(.binaryExp(.value(0xff00), "+", .value(let n))), .constant("a")):
+			let n8 = try UInt8.fromInt(value: n)
+			return [.byte(0xe0), .byte(n8)]
+		case (.constant("a"), .parens(.value(let n))) where n >= 0xff00:
+			let n8 = try UInt16.fromInt(value: n).lsb
+			return [.byte(0xf0), .byte(n8)]
+		case (.parens(.value(let n)), .constant("a")) where n >= 0xff00:
+			let n8 = try UInt16.fromInt(value: n).lsb
+			return [.byte(0xe0), .byte(n8)]
+		case (.constant("a"), .parens(.value(let n))):
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0xfa), .byte(n16.lsb), .byte(n16.msb)]
+		case (.parens(.value(let n)), .constant("a")):
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0xea), .byte(n16.lsb), .byte(n16.msb)]
+		case _: break
+		}
+		
 		if let toReg = try? getRegister8Value(operand: to) {
 			if let fromReg = try? getRegister8Value(operand: from) {
 				if fromReg == 6 && toReg == 6 { throw ErrorMessage("Cannot load between (HL) and (HL)") }
 				return [.byte(0x40 | (toReg << 3) | fromReg)]
 			}
-			
-//			if case .value(let n) = from {
-//				guard (0...0xff).contains(n) else { throw ErrorMessage("Value of out range for one byte") }
-//				return [.byte(0x06 | (toReg << 3)), .byte(UInt8(n))]
-//			}
 			
 			return [.byte(0x06 | (toReg << 3)), try assembleExpression8(from: from, signed: false)]
 		}
@@ -415,6 +420,14 @@ struct Assembler {
 			try expandExpressionConstants(expression: instruction.operands[0]),
 			try expandExpressionConstants(expression: instruction.operands[1])
 		)
+	}
+	
+	func getOperandRaw(instruction : Instruction, index : Int) throws -> Expression {
+		guard instruction.operands.count >= index else {
+			throw ErrorMessage("Missing operand")
+		}
+		
+		return instruction.operands[index]
 	}
 	
 	func getNoOperands(instruction : Instruction) throws {
