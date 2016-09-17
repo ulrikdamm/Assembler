@@ -18,8 +18,10 @@ class LinkerTests : XCTestCase {
 	static let simpleExpression = Expression.binaryExp(.value(2), "+", .value(3))
 	static let labelExpression = Expression.binaryExp(.constant("block2"), "+", .value(2))
 	
-	let block5 = Linker.Block(name: "block5", origin: nil, data: [.byte(0x09), .expression(LinkerTests.simpleExpression)])
-	let block6 = Linker.Block(name: "block6", origin: nil, data: [.byte(0x0a), .expression(LinkerTests.labelExpression)])
+	let block5 = Linker.Block(name: "block5", origin: nil, data: [.byte(0x09), .expression(LinkerTests.simpleExpression, .uint8)])
+	let block6 = Linker.Block(name: "block6", origin: nil, data: [.byte(0x0a), .expression(LinkerTests.labelExpression, .uint16)])
+	
+	let failBlock = Linker.Block(name: "failblock", origin: nil, data: [.byte(0x0a), .expression(LinkerTests.labelExpression, .uint8)])
 	
 	func testCreateBasicAllocations() {
 		let linker = Linker(blocks: [block1, block2])
@@ -92,12 +94,25 @@ class LinkerTests : XCTestCase {
 	func testLinkSimpleExpression() {
 		let linker = Linker(blocks: [block1, block5])
 		let data = try! linker.link()
-		XCTAssertEqual(data, [1, 2, 3, 9, 5, 0])
+		XCTAssertEqual(data, [1, 2, 3, 9, 5])
 	}
 	
 	func testLinkLabelExpression() {
 		let linker = Linker(blocks: [block1, block2, block6])
 		let data = try! linker.link()
 		XCTAssertEqual(data, [1, 2, 3, 4, 5, 10, 5, 0])
+	}
+	
+	func testLinkFailExpression() {
+		let linker = Linker(blocks: [failBlock])
+		
+		do {
+			let _ = try linker.link()
+			XCTFail()
+		} catch is ErrorMessage {
+			// TODO: error message enum
+		} catch {
+			XCTFail()
+		}
 	}
 }

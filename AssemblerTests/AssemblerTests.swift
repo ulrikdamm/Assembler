@@ -372,8 +372,13 @@ class ExpressionOpcodeTests : AssemblerTests {
 		assert("ld hl, label", [.byte(0x21), .label("label")])
 	}
 	
-	func test_expression()	{
+	func test_expression_16()	{
 		let result = Expression.binaryExp(.constant("label"), "+", .value(1))
-		assert("ld hl, label + 1", [.byte(0x21), .expression(result)])
+		assert("ld hl, label + 1", [.byte(0x21), .expression(result, .uint16)])
+	}
+	
+	func test_expression_8() {
+		let result = Expression.binaryExp(.constant("label1"), "-", .constant("label2"))
+		assert("ld a, label1 - label2", [.byte(0x3e), .expression(result, .uint8)])
 	}
 }

@@ -44,12 +44,10 @@ struct Assembler {
 	func assembleLogicOperation(_ instruction : Instruction, mask : UInt8, directOpcode : UInt8) throws -> [Opcode] {
 		let operand = try getSingleOperand(instruction: instruction)
 		
-		if case .value(let n) = operand {
-			guard (0...0xff).contains(n) else { throw ErrorMessage("Value of out byte range") }
-			return [.byte(directOpcode), .byte(UInt8(n))]
+		if let targetReg = try? getRegister8Value(operand: operand) {
+			return [.byte(mask | targetReg)]
 		} else {
-			let regValue = try getRegister8Value(operand: operand)
-			return [.byte(mask | regValue)]
+			return [.byte(directOpcode), try assembleExpression8(from: operand, signed: false)]
 		}
 	}
 	
@@ -74,12 +72,10 @@ struct Assembler {
 		let (operandA, operandR) = try getTwoOperands(instruction: instruction)
 		guard case .constant("a") = operandA else { throw ErrorMessage("Can only be register A") }
 		
-		if case .value(let n) = operandR {
-			guard (0...0xff).contains(n) else { throw ErrorMessage("Value of out byte range") }
-			return [.byte(directOpcode), .byte(UInt8(n))]
+		if let targetReg = try? getRegister8Value(operand: operandR) {
+			return [.byte(mask | targetReg)]
 		} else {
-			let regValue = try getRegister8Value(operand: operandR)
-			return [.byte(mask | regValue)]
+			return [.byte(directOpcode), try assembleExpression8(from: operandR, signed: false)]
 		}
 	}
 	
@@ -100,13 +96,7 @@ struct Assembler {
 	func assembleJp(_ instruction : Instruction, call : Bool) throws -> [Opcode] {
 		if let (conditionOperand, labelOperand) = try? getTwoOperands(instruction: instruction) {
 			let condition = try getLabelValue(operand: conditionOperand)
-			let target : [Opcode]
-			
-			switch labelOperand {
-			case .constant(let labelName): target = [.label(labelName)]
-			case .value(let n): target = try Opcode.bytesFrom16bit(n)
-			case _: throw ErrorMessage("Invalid jump target")
-			}
+			let target = try assembleExpression16(from: labelOperand)
 			
 			let jpOpcode : UInt8
 			switch condition {
@@ -118,17 +108,16 @@ struct Assembler {
 			}
 			
 			return [.byte(jpOpcode)] + target
-		} else {
-			let labelOperand = try getSingleOperand(instruction: instruction)
-			
-			switch labelOperand {
-			case .constant("hl"):
-				guard !call else { throw ErrorMessage("Invalid call operand") }
-				return [.byte(0xe9)]
-			case .constant(let label): return [.byte(call ? 0xcd : 0xc3), .label(label)]
-			case .value(let n): return try [.byte(call ? 0xcd : 0xc3)] + Opcode.bytesFrom16bit(n)
-			case _: throw ErrorMessage("Invalid jump target")
-			}
+		}
+		
+		let labelOperand = try getSingleOperand(instruction: instruction)
+		
+		switch labelOperand {
+		case .constant("hl"):
+			guard !call else { throw ErrorMessage("Invalid call operand") }
+			return [.byte(0xe9)]
+		case _:
+			return try [.byte(call ? 0xcd : 0xc3)] + assembleExpression16(from: labelOperand)
 		}
 	}
 	
@@ -304,10 +293,12 @@ struct Assembler {
 				return [.byte(0x40 | (toReg << 3) | fromReg)]
 			}
 			
-			if case .value(let n) = from {
-				guard (0...0xff).contains(n) else { throw ErrorMessage("Value of out range for one byte") }
-				return [.byte(0x06 | (toReg << 3)), .byte(UInt8(n))]
-			}
+//			if case .value(let n) = from {
+//				guard (0...0xff).contains(n) else { throw ErrorMessage("Value of out range for one byte") }
+//				return [.byte(0x06 | (toReg << 3)), .byte(UInt8(n))]
+//			}
+			
+			return [.byte(0x06 | (toReg << 3)), try assembleExpression8(from: from, signed: false)]
 		}
 		
 		throw ErrorMessage("Invalid load from \(from) to \(to)")
@@ -453,8 +444,14 @@ struct Assembler {
 			}
 			
 			return .byte(n8)
-		case .constant(let name): throw ErrorMessage("Unknown constant `\(name)`")
-		case _: throw ErrorMessage("Invalid 8 bit value: `\(expression)`")
+		case .constant(let name):
+			throw ErrorMessage("Unknown constant `\(name)`")
+		case _:
+			if signed {
+				throw ErrorMessage("Invalid expression `\(expression)`") 
+			} else {
+				return .expression(reduced, .uint8)
+			}
 		}
 	}
 	
@@ -467,7 +464,7 @@ struct Assembler {
 		case .constant(let name):
 			return [.label(name)]
 		case _:
-			return [.expression(expression)]
+			return [.expression(reduced, .uint16)]
 		}
 	}
 }

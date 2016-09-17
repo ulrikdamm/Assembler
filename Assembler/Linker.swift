@@ -10,14 +10,16 @@ enum Opcode : CustomStringConvertible {
 	case byte(UInt8)
 	case word(UInt16)
 	case label(String)
-	case expression(Expression)
+	case expression(Expression, ResultType)
+	
+	enum ResultType { case uint16, uint8 }
 	
 	var description : String {
 		switch self {
 		case .byte(let b): return String(b, radix: 16)
 		case .word(let w): return String(w, radix: 16)
 		case .label(let name): return name
-		case .expression(let expr): return expr.description
+		case .expression(let expr, _): return expr.description
 		}
 	}
 	
@@ -26,7 +28,8 @@ enum Opcode : CustomStringConvertible {
 		case .byte(_): return 1
 		case .word(_): return 2
 		case .label(_): return 2
-		case .expression(_): return 2
+		case .expression(_, .uint16): return 2
+		case .expression(_, .uint8): return 1
 		}
 	}
 	
@@ -42,7 +45,7 @@ extension Opcode : Equatable {
 		case (.byte(let nl), .byte(let nr)) where nl == nr: return true
 		case (.word(let nl), .word(let nr)) where nl == nr: return true
 		case (.label(let sl), .label(let sr)) where sl == sr: return true
-		case (.expression(let el), .expression(let er)) where el == er: return true
+		case (.expression(let el, let rl), .expression(let er, let rr)) where el == er && rl == rr: return true
 		case _: return false
 		}
 	}
@@ -93,17 +96,23 @@ struct Linker {
 					} else {
 						throw ErrorMessage("Unknown label ’\(name)‘")
 					}
-				case .expression(let expr):
+				case .expression(let expr, let type):
 					let mapped = try expr.mapSubExpressions(map: replaceExpressionLabelValue)
 					let reduced = mapped.reduce()
 					guard case .value(let value) = reduced else {
 						throw ErrorMessage("Invalid value `\(reduced)`")
 					}
 					
-					let n16 = try UInt16.fromInt(value: value)
-					data[allocation.start + offset] = n16.lsb
-					data[allocation.start + offset + 1] = n16.msb
-					offset += 2
+					switch type {
+					case .uint8:
+						data[allocation.start + offset] = try UInt8.fromInt(value: value)
+						offset += 1
+					case .uint16:
+						let n16 = try UInt16.fromInt(value: value)
+						data[allocation.start + offset] = n16.lsb
+						data[allocation.start + offset + 1] = n16.msb
+						offset += 2
+					}
 				}	
 			}
 		}
