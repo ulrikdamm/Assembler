@@ -61,8 +61,9 @@ class LoadTests : AssemblerTests {
 	func test_ld_1234_a()	{ assert("ld (0x1234), a",		[0xea, 0x34, 0x12]) }
 	func test_ld_a_ff()		{ assert("ld a, 0xff",			[0x3e, 0xff]) }
 	
-	// Regression test
+	// Regression tests
 	func test_ld_a_const()	{ assert("ld a, (testconst)",	[0xfa, 0x34, 0x12]) }
+	func test_ld_a_const2()	{ assert("ld a, (testconst+1)",	[0xfa, 0x35, 0x12]) }
 	
 	func test_ld_bc8_a()	{ assert("ld (bc), a",			[0x02]) }
 	func test_ld_hl8_a()	{ assert("ld (hl), a",			[0x77]) }

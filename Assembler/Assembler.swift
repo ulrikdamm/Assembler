@@ -275,27 +275,32 @@ struct Assembler {
 		case _: break
 		}
 		
-		let rawLeft = try expandExpressionConstants(expression: getOperandRaw(instruction: instruction, index: 0))
-		let rawRight = try expandExpressionConstants(expression: getOperandRaw(instruction: instruction, index: 1))
+		let rawLeft = try getOperandRaw(instruction: instruction, index: 0)
+		let rawRight = try getOperandRaw(instruction: instruction, index: 1)
+		
 		switch (rawLeft, rawRight) {
-		case (.constant("a"), .parens(.binaryExp(.value(0xff00), "+", .value(let n)))):
-			let n8 = try UInt8.fromInt(value: n)
-			return [.byte(0xf0), .byte(n8)]
-		case (.parens(.binaryExp(.value(0xff00), "+", .value(let n))), .constant("a")):
-			let n8 = try UInt8.fromInt(value: n)
-			return [.byte(0xe0), .byte(n8)]
-		case (.constant("a"), .parens(.value(let n))) where n >= 0xff00:
-			let n8 = try UInt16.fromInt(value: n).lsb
-			return [.byte(0xf0), .byte(n8)]
-		case (.parens(.value(let n)), .constant("a")) where n >= 0xff00:
-			let n8 = try UInt16.fromInt(value: n).lsb
-			return [.byte(0xe0), .byte(n8)]
-		case (.constant("a"), .parens(.value(let n))):
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0xfa), .byte(n16.lsb), .byte(n16.msb)]
-		case (.parens(.value(let n)), .constant("a")):
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0xea), .byte(n16.lsb), .byte(n16.msb)]
+		case (.constant("a"), .parens(let subexpr)):
+			let expr = try expandExpressionConstants(expression: subexpr).reduce()
+			switch expr {
+			case .value(let n) where n >= 0xff00:
+				let n8 = try UInt16.fromInt(value: n).lsb
+				return [.byte(0xf0), .byte(n8)]
+			case .value(let n):
+				let n16 = try UInt16.fromInt(value: n)
+				return [.byte(0xfa), .byte(n16.lsb), .byte(n16.msb)]
+			case _: break
+			}
+		case (.parens(let subexpr), .constant("a")):
+			let expr = try expandExpressionConstants(expression: subexpr).reduce()
+			switch expr {
+			case .value(let n) where n >= 0xff00:
+				let n8 = try UInt16.fromInt(value: n).lsb
+				return [.byte(0xe0), .byte(n8)]
+			case .value(let n):
+				let n16 = try UInt16.fromInt(value: n)
+				return [.byte(0xea), .byte(n16.lsb), .byte(n16.msb)]
+			case _: break
+			}
 		case _: break
 		}
 		
