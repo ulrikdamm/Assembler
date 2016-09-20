@@ -38,7 +38,7 @@ struct Assembler {
 			}
 		}
 		
-		return newExpression.reduce()
+		return newExpression
 	}
 	
 	func assembleLogicOperation(_ instruction : Instruction, mask : UInt8, directOpcode : UInt8) throws -> [Opcode] {
@@ -275,7 +275,9 @@ struct Assembler {
 		case _: break
 		}
 		
-		switch (try getOperandRaw(instruction: instruction, index: 0), try getOperandRaw(instruction: instruction, index: 1)) {
+		let rawLeft = try expandExpressionConstants(expression: getOperandRaw(instruction: instruction, index: 0))
+		let rawRight = try expandExpressionConstants(expression: getOperandRaw(instruction: instruction, index: 1))
+		switch (rawLeft, rawRight) {
 		case (.constant("a"), .parens(.binaryExp(.value(0xff00), "+", .value(let n)))):
 			let n8 = try UInt8.fromInt(value: n)
 			return [.byte(0xf0), .byte(n8)]
@@ -408,7 +410,7 @@ struct Assembler {
 			throw ErrorMessage("Only one operand required")
 		}
 		
-		return try expandExpressionConstants(expression: instruction.operands[0])
+		return try expandExpressionConstants(expression: instruction.operands[0]).reduce()
 	}
 	
 	func getTwoOperands(instruction : Instruction) throws -> (Expression, Expression) {
@@ -417,8 +419,8 @@ struct Assembler {
 		}
 		
 		return (
-			try expandExpressionConstants(expression: instruction.operands[0]),
-			try expandExpressionConstants(expression: instruction.operands[1])
+			try expandExpressionConstants(expression: instruction.operands[0]).reduce(),
+			try expandExpressionConstants(expression: instruction.operands[1]).reduce()
 		)
 	}
 	
@@ -441,7 +443,7 @@ struct Assembler {
 			throw ErrorMessage("Operands required")
 		}
 		
-		return try instruction.operands.map { try expandExpressionConstants(expression: $0) }
+		return try instruction.operands.map { try expandExpressionConstants(expression: $0).reduce() }
 	}
 	
 	func assembleExpression8(from expression : Expression, signed : Bool) throws -> Opcode {
