@@ -107,7 +107,7 @@ class LinkerTests : XCTestCase {
 	func testLinkRelativeLabelExpression() {
 		let linker = Linker(blocks: [block1, block2, block7])
 		let data = try! linker.link()
-		XCTAssertEqual(data, [1, 2, 3, 4, 5, 11, 0xfd])
+		XCTAssertEqual(data, [1, 2, 3, 4, 5, 11, 0xfc])
 	}
 	
 	func testLinkFailExpression() {

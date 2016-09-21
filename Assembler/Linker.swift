@@ -100,8 +100,9 @@ struct Linker {
 				case .label(let name, relative: true):
 					if let start = blockStart(name: name) {
 						let n16 = try UInt16.fromInt(value: start)
-						let current = allocation.start + offset
+						let current = allocation.start + offset + 1
 						let difference = Int(n16) - Int(current)
+						print(difference)
 						
 						do {
 							let value = try Int8.fromInt(value: difference)

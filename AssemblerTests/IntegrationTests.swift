@@ -28,6 +28,6 @@ class IntegrationTests : XCTestCase {
 		]
 		
 		let result = try! assembleProgram(source: source)
-		XCTAssertEqual(result, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0x18, 0xf9])
+		XCTAssertEqual(result, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0x18, 0xf8])
 	}
 }
