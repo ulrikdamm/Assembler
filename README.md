@@ -56,6 +56,10 @@ This is how it looks:
 
 ![Smiley example screenshot](https://d17oy1vhnax1f7.cloudfront.net/items/2t2s3q1J3E3Y2Z3e2p1D/smiley.png?v=dff06f03)
 
+There are more examples in the examples folder:
+
+[Smiley sprite](Examples/smiley.asm) | [Hello world](Examples/helloworld.asm) | [Directional pad movement](Examples/movement.asm)
+
 ## Usage
 
 The project comes with a CLI application which you can invoke with `input/file.asm -o output/file.gb`.  
