@@ -1,5 +1,5 @@
-# Simple smiley
-# Displays a smiley sprite in the upper left corner of the screen
+# Hello world
+# Displays the message HELLO WORLD at the top of the screen
 
 bg_tile_map = 0x9800
 bg_tile_data = 0x9000
