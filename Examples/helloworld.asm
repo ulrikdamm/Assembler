@@ -12,6 +12,8 @@ ly = 0xff44
 palette = 0xff47
 
 [org(0x4000)] message: db "HELLO WORLD"
+message_end:
+  
 [org(0x4041)]
 letter_a: db 0x00, 0x18, 0x24, 0x24, 0x3c, 0x24, 0x24, 0x24
 letter_b: db 0x00, 0x38, 0x24, 0x24, 0x24, 0x38, 0x24, 0x38
@@ -48,7 +50,7 @@ letter_z: db 0x00, 0x3c, 0x04, 0x04, 0x18, 0x20, 0x20, 0x3c
   di
   
   call stopLCD
-  
+
   ld hl, alphabet_start_addr
   ld de, 25 * (8 * 8)
   ld bc, 0x4041
@@ -58,37 +60,41 @@ letter_z: db 0x00, 0x3c, 0x04, 0x04, 0x18, 0x20, 0x20, 0x3c
   ld bc, 0x4000
   ld d, 11
   call copy_bytes
-  
+
   # Set bg palette data
   ld a, 0xe4
-  ld (palette), a
-  
+  ld hl, palette
+  ld [hl], a
+
   call startLCD
   
   end: jp end
 
 # Wait until it's safe to update the screen and then disable LCD operation
 stopLCD:
-  ld a, (ly)
+  ld hl, ly
+  ld a, [hl]
   cp 145
   jp nc, stopLCD
   ld a, (lcdc_gbwin_on_bit)
-  ld (lcdc), a
+  ld hl, lcdc
+  ld [hl], a
   ret
 
 startLCD:
   ld a, (lcdc_gbwin_on_bit | lcdc_operation_bit)
-  ld (lcdc), a
+  ld hl, lcdc
+  ld [hl], a
   ret
 
 # d: number of bytes
 # bc: start address
 # hl: destination address
 copy_bytes:
-  ld a, (bc)
-  ld (hl+), a
+  ld a, [bc]
+  ld [hl+], a
   inc bc
-  
+   
   dec d
   jp nz, copy_bytes
   ret
@@ -97,10 +103,10 @@ copy_bytes:
 # bc: start address
 # hl: destination address
 copy_bytes_twice:
-  ld a, (bc)
+  ld a, [bc]
   inc bc
-  ld (hl+), a
-  ld (hl+), a
+  ld [hl+], a
+  ld [hl+], a
   
   dec e
   jp nz, copy_bytes_twice

@@ -248,59 +248,42 @@ struct Assembler {
 		let (to, from) = try getTwoOperands(instruction: instruction)
 		
 		switch (to, from) {
-		case (.constant("a"), .parens(.constant("bc"))): return [.byte(0x0a)]
-		case (.constant("a"), .parens(.constant("de"))): return [.byte(0x1a)]
-		case (.parens(.constant("bc")), .constant("a")): return [.byte(0x02)]
-		case (.parens(.constant("de")), .constant("a")): return [.byte(0x12)]
-		case (.constant("a"), .parens(.binaryExp(.value(0xff00), "+", .constant("c")))): return [.byte(0xf2)]
-		case (.parens(.binaryExp(.value(0xff00), "+", .constant("c"))), .constant("a")): return [.byte(0xe2)]
+		case (.constant("a"), .squareParens(.constant("bc"))): return [.byte(0x0a)]
+		case (.constant("a"), .squareParens(.constant("de"))): return [.byte(0x1a)]
+		case (.squareParens(.constant("bc")), .constant("a")): return [.byte(0x02)]
+		case (.squareParens(.constant("de")), .constant("a")): return [.byte(0x12)]
+		case (.constant("a"), .squareParens(.binaryExpr(.value(0xff00), "+", .constant("c")))): return [.byte(0xf2)]
+		case (.squareParens(.binaryExpr(.value(0xff00), "+", .constant("c"))), .constant("a")): return [.byte(0xe2)]
 		case (.constant("sp"), .constant("hl")): return [.byte(0xf9)]
-		case (.constant("hl"), .binaryExp(.constant("sp"), "+", .value(let n))):
+		case (.constant("hl"), .binaryExpr(.constant("sp"), "+", .value(let n))):
 			let n8 = try Int8.fromInt(value: n)
 			return [.byte(0xf8), .byte(UInt8(bitPattern: n8))]
-		case (.constant("hl"), .binaryExp(.constant("sp"), "-", .value(let n))):
+		case (.constant("hl"), .binaryExpr(.constant("sp"), "-", .value(let n))):
 			let n8 = try Int8.fromInt(value: -n)
 			return [.byte(0xf8), .byte(UInt8(bitPattern: n8))]
 		case (.value(let n), .constant("sp")):
 			let n16 = try UInt16.fromInt(value: n)
 			return [.byte(0x08), .byte(n16.lsb), .byte(n16.msb)]
-		case (.constant("a"), .parens(.suffix(.constant("hl"), "+"))): return [.byte(0x2a)]
-		case (.constant("a"), .parens(.suffix(.constant("hl"), "-"))): return [.byte(0x3a)]
-		case (.parens(.suffix(.constant("hl"), "+")), .constant("a")): return [.byte(0x22)]
-		case (.parens(.suffix(.constant("hl"), "-")), .constant("a")): return [.byte(0x32)]
+		case (.constant("a"), .squareParens(.suffix(.constant("hl"), "+"))): return [.byte(0x2a)]
+		case (.constant("a"), .squareParens(.suffix(.constant("hl"), "-"))): return [.byte(0x3a)]
+		case (.squareParens(.suffix(.constant("hl"), "+")), .constant("a")): return [.byte(0x22)]
+		case (.squareParens(.suffix(.constant("hl"), "-")), .constant("a")): return [.byte(0x32)]
 		case (.constant("bc"), let value): return try [.byte(0x01)] + assembleExpression16(from: value) 
 		case (.constant("de"), let value): return try [.byte(0x11)] + assembleExpression16(from: value)
 		case (.constant("hl"), let value): return try [.byte(0x21)] + assembleExpression16(from: value)
 		case (.constant("sp"), let value):  return try [.byte(0x31)] + assembleExpression16(from: value)
-		case _: break
-		}
-		
-		let rawLeft = try getOperandRaw(instruction: instruction, index: 0)
-		let rawRight = try getOperandRaw(instruction: instruction, index: 1)
-		
-		switch (rawLeft, rawRight) {
-		case (.constant("a"), .parens(let subexpr)):
-			let expr = try expandExpressionConstants(expression: subexpr).reduce()
-			switch expr {
-			case .value(let n) where n >= 0xff00:
-				let n8 = try UInt16.fromInt(value: n).lsb
-				return [.byte(0xf0), .byte(n8)]
-			case .value(let n):
-				let n16 = try UInt16.fromInt(value: n)
-				return [.byte(0xfa), .byte(n16.lsb), .byte(n16.msb)]
-			case _: break
-			}
-		case (.parens(let subexpr), .constant("a")):
-			let expr = try expandExpressionConstants(expression: subexpr).reduce()
-			switch expr {
-			case .value(let n) where n >= 0xff00:
-				let n8 = try UInt16.fromInt(value: n).lsb
-				return [.byte(0xe0), .byte(n8)]
-			case .value(let n):
-				let n16 = try UInt16.fromInt(value: n)
-				return [.byte(0xea), .byte(n16.lsb), .byte(n16.msb)]
-			case _: break
-			}
+		case (.constant("a"), .squareParens(.value(let n))) where n >= 0xff00:
+			let n8 = try UInt16.fromInt(value: n).lsb
+			return [.byte(0xf0), .byte(n8)]
+		case (.squareParens(.value(let n)), .constant("a")) where n >= 0xff00:
+			let n8 = try UInt16.fromInt(value: n).lsb
+			return [.byte(0xe0), .byte(n8)]
+		case (.constant("a"), .squareParens(.value(let n))):
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0xfa), .byte(n16.lsb), .byte(n16.msb)]
+		case (.squareParens(.value(let n)), .constant("a")):
+			let n16 = try UInt16.fromInt(value: n)
+			return [.byte(0xea), .byte(n16.lsb), .byte(n16.msb)]
 		case _: break
 		}
 		
@@ -392,7 +375,7 @@ struct Assembler {
 		case .constant("e"): return 3
 		case .constant("h"): return 4
 		case .constant("l"): return 5
-		case .parens(.constant("hl")): return 6
+		case .squareParens(.constant("hl")): return 6
 		case .constant("a"): return 7
 		default: throw ErrorMessage("Not a valid register: \(operand)")
 		}
@@ -415,7 +398,7 @@ struct Assembler {
 			throw ErrorMessage("Only one operand required")
 		}
 		
-		return try expandExpressionConstants(expression: instruction.operands[0]).reduce()
+		return try expandExpressionConstants(expression: instruction.operands[0]).reduced()
 	}
 	
 	func getTwoOperands(instruction : Instruction) throws -> (Expression, Expression) {
@@ -424,8 +407,8 @@ struct Assembler {
 		}
 		
 		return (
-			try expandExpressionConstants(expression: instruction.operands[0]).reduce(),
-			try expandExpressionConstants(expression: instruction.operands[1]).reduce()
+			try expandExpressionConstants(expression: instruction.operands[0]).reduced(),
+			try expandExpressionConstants(expression: instruction.operands[1]).reduced()
 		)
 	}
 	
@@ -448,11 +431,11 @@ struct Assembler {
 			throw ErrorMessage("Operands required")
 		}
 		
-		return try instruction.operands.map { try expandExpressionConstants(expression: $0).reduce() }
+		return try instruction.operands.map { try expandExpressionConstants(expression: $0).reduced() }
 	}
 	
 	func assembleExpression8(from expression : Expression, signed : Bool) throws -> Opcode {
-		let reduced = expression.reduce()
+		let reduced = expression.reduced()
 		switch reduced {
 		case .value(let value):
 			let n8 : UInt8
@@ -476,7 +459,7 @@ struct Assembler {
 	}
 	
 	func assembleExpression16(from expression : Expression) throws -> [Opcode] {
-		let reduced = expression.reduce()
+		let reduced = expression.reduced()
 		switch reduced {
 		case .value(let value):
 			let n16 = try UInt16.fromInt(value: value)

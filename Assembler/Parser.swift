@@ -414,6 +414,17 @@ struct State {
 			}
 			state = newState3
 			expression = .parens(nextExpression)
+		} else if let (c, newState1) = state.ignoreWhitespace().getChar(), c == "[" {
+			state = newState1
+			guard let (nextExpression, newState2) = try state.getExpression() else {
+				throw ParseError(reason: .expectedExpression, state)
+			}
+			state = newState2
+			guard let (c2, newState3) = state.ignoreWhitespace().getChar(), c2 == "]" else {
+				throw ParseError(reason: .expectedMatch(match: ")"), state)
+			}
+			state = newState3
+			expression = .squareParens(nextExpression)
 		} else if let (op, newState1) = state.getExpressionOperator() {
 			state = newState1
 			guard let (nextExpression, newState2) = try state.getExpression() else {
@@ -429,7 +440,7 @@ struct State {
 			state = newState2
 			
 			if let (nextExpression, newState3) = try state.getExpression() {
-				return (.binaryExp(expression, operatorCharacter, nextExpression), newState3)
+				return (.binaryExpr(expression, operatorCharacter, nextExpression), newState3)
 			} else {
 				return (.suffix(expression, operatorCharacter),  newState2)
 			}

@@ -15,8 +15,8 @@ class LinkerTests : XCTestCase {
 	let block3 = Linker.Block(name: "block3", origin: 0x06, data: [.byte(0x06), .byte(0x07)])
 	let block4 = Linker.Block(name: "block4", origin: nil, data: [.byte(0x08), .label("block2")])
 	
-	static let simpleExpression = Expression.binaryExp(.value(2), "+", .value(3))
-	static let labelExpression = Expression.binaryExp(.constant("block2"), "+", .value(2))
+	static let simpleExpression = Expression.binaryExpr(.value(2), "+", .value(3))
+	static let labelExpression = Expression.binaryExpr(.constant("block2"), "+", .value(2))
 	
 	let block5 = Linker.Block(name: "block5", origin: nil, data: [.byte(0x09), .expression(LinkerTests.simpleExpression, .uint8)])
 	let block6 = Linker.Block(name: "block6", origin: nil, data: [.byte(0x0a), .expression(LinkerTests.labelExpression, .uint16)])

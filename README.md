@@ -23,12 +23,12 @@ bg_tile_data = 0x9000
 [org(0x150)] main:
 	# Set LCDC (bit 7: operation on, bit 0: bg and win on)
 	ld hl, 0xff40
-	ld (hl), (1 | (1 << 7))
+	ld [hl], (1 | (1 << 7))
 
 	# Set first bg tile
 	ld h, (bg_tile_map >> 8)
 	ld l, (bg_tile_map & 0xff)
-	ld (hl), 1
+	ld [hl], 1
 
 	# Set the tile data
 	ld h, (bg_tile_data >> 8)
@@ -36,20 +36,20 @@ bg_tile_data = 0x9000
 	ld b, 8
 	ld de, 0x4000
 	loop:
-		ld a, (de)
+		ld a, [de]
 		inc de
-		ld (hl+), a
-		ld (hl+), a
+		ld [hl+], a
+		ld [hl+], a
 		dec b
 		jp nz, loop
 
 	# Set bg palette data
 	ld hl, 0xff47
-	ld (hl), 0xe4
-	
+	ld [hl], 0xe4
 	end: jp end
 
 [org(0x7fff)] pad: db 0x00
+
 ```
 
 This is how it looks:

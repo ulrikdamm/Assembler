@@ -98,7 +98,7 @@ struct Linker {
 					}
 				case .expression(let expr, let type):
 					let mapped = try expr.mapSubExpressions(map: replaceExpressionLabelValue)
-					let reduced = mapped.reduce()
+					let reduced = mapped.reduced()
 					guard case .value(let value) = reduced else {
 						throw ErrorMessage("Invalid value `\(reduced)`")
 					}
