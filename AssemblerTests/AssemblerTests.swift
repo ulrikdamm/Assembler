@@ -395,11 +395,22 @@ class JumpTests : AssemblerTests {
 	func test_ret_nc()		{ assert("ret nc",				[0xd0]) }
 	func test_ret_c()		{ assert("ret c",				[0xd8]) }
 	func test_reti()		{ assert("reti",				[0xd9]) }
+	
+	func test_jr_n()		{ assert("jr 5",				[0x18, 0x05]) }
+	func test_jr_n_neg()	{ assert("jr -5",				[0x18, 0xfb]) }
+	func test_jr_z_n_neg()	{ assert("jr z, -5",			[0x28, 0xfb]) }
+	func test_jr_nz_n_neg()	{ assert("jr nz, -5",			[0x20, 0xfb]) }
+	func test_jr_c_n_neg()	{ assert("jr c, -5",			[0x38, 0xfb]) }
+	func test_jr_nc_n_neg()	{ assert("jr nc, -5",			[0x30, 0xfb]) }
 }
 
 class ExpressionOpcodeTests : AssemblerTests {
 	func test_label_ref()	{
-		assert("ld hl, label", [.byte(0x21), .label("label")])
+		assert("ld hl, label", [.byte(0x21), .label("label", relative: false)])
+	}
+	
+	func test_label_ref_relative()	{
+		assert("jr label", [.byte(0x18), .label("label", relative: true)])
 	}
 	
 	func test_expression_16()	{

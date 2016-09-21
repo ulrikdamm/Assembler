@@ -121,6 +121,42 @@ struct Assembler {
 		}
 	}
 	
+	func assembleJr(_ instruction : Instruction) throws -> [Opcode] {
+		let condition : String?
+		let target : Expression
+		
+		if let (conditionOperand, labelOperand) = try? getTwoOperands(instruction: instruction) {
+			condition = try getLabelValue(operand: conditionOperand)
+			target = labelOperand
+		} else {
+			condition = nil
+			target = try getSingleOperand(instruction: instruction)
+		}
+		
+		let targetCode : Opcode
+		let opcode : UInt8
+		
+		switch target {
+		case .constant(let name):
+			targetCode = .label(name, relative: true)
+		case .value(let value):
+			let s8 = try Int8.fromInt(value: value)
+			targetCode = .byte(UInt8(bitPattern: s8))
+		case _: throw ErrorMessage("Invalid jump target: `\(target)`")
+		}
+		
+		switch condition {
+		case "z"?: opcode = 0x28
+		case "nz"?: opcode = 0x20
+		case "c"?: opcode = 0x38
+		case "nc"?: opcode = 0x30
+		case nil: opcode = 0x18
+		case _: throw ErrorMessage("Invalid condition ’\(condition)‘")
+		}
+		
+		return [.byte(opcode), targetCode]
+	}
+	
 	func assembleRet(_ instruction : Instruction) throws -> [Opcode] {
 		let opcode : UInt8
 		
@@ -323,6 +359,7 @@ struct Assembler {
 			case "ld": return try assembleLd(instruction)
 				
 			case "jp": return try assembleJp(instruction, call: false)
+			case "jr": return try assembleJr(instruction)
 			case "call": return try assembleJp(instruction, call: true)
 			case "rst": return try assembleRst(instruction)
 			case "ret": return try assembleRet(instruction)
@@ -465,7 +502,7 @@ struct Assembler {
 			let n16 = try UInt16.fromInt(value: value)
 			return [.byte(n16.lsb), .byte(n16.msb)]
 		case .constant(let name):
-			return [.label(name)]
+			return [.label(name, relative: false)]
 		case _:
 			return [.expression(reduced, .uint16)]
 		}
