@@ -67,15 +67,23 @@ It also contains a dynamic framework which you can import into a macOS or iOS ap
 
 ## Project status
 
-Version 1.1 of the project has been released, and contains all core features for the assembler! See below for which features are implemented, and which are still to come.
+The assembler is stable and able to produce working binaries. See below for which features are supported and which are yet to come.
+
+### New in version 1.2
+
+🆕 Optional linker output showing all symbol locations (run with `--output-symbols`)  
+🆕 Relative jumps (`jr`)  
+🆕 Updated syntax (uses [] instead of () for direct memory access, as in `ld a, [0xff46]`)  
+🆒 Example code showing gamepad input and DMA transfers  
+🆗 Fixed problems with loads between a and memory that wouldn't assemble properly
 
 ### New in version 1.1
 
-🆕 Ability to use labels in expressions (e.g. `ld a, (data_end - data)`)  
-🆕 Fixed loading of values between A and memory addresses (e.g. `ld a, (0xff00 + 0x44)`)  
+🆕 Ability to use labels in expressions (e.g. `ld a, (data_end - data)`)    
 🆕 Allows empty labels (useful for the first point)  
 🆕 Better command line interface, allows relative paths  
-🆕 Updated examples
+🆒 Updated examples
+🆗 Fixed loading of values between A and memory addresses (e.g. `ld a, (0xff00 + 0x44)`)
 
 ### Implemented features
 
@@ -93,12 +101,11 @@ Version 1.1 of the project has been released, and contains all core features for
 
 ➡️ Imports and file modules  
 ➡️ Smart layout of disconnected blocks in linker  
-➡️ Optional linker symbols file output  
+➡️ Support for variables though `ds` (define storage)
 
 ### Wish list
 
 💟 More awesome example programs    
-💟 Disentanglement of code (the parsing module should be more generic for example)    
 💟 Sprite importer (manually entering pixel hex codes suck. Maybe a way of defining sprites in ASCII art?)  
 💟 Graphical code editor  
 
