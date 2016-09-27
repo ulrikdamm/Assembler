@@ -79,7 +79,11 @@ func main() {
 		let source = try String(contentsOf: arguments.inputFile)
 		
 		guard let program = try State(source: source).getProgram()?.value else { throw ErrorMessage("Couldn't parse source") }
-		let blocks = try program.blocks.map { block in try assembleBlock(label: block, constants: program.constants) }
+		
+		let assembler = Assembler<GameboyInstructionSet>(constants: program.constants)
+		let blocks = try program.blocks.map { block in try assembler.assembleBlock(label: block) }
+		
+//		let blocks = try program.blocks.map { block in try assembleBlock(label: block, constants: program.constants) }
 		let linker = Linker(blocks: blocks)
 		let bytes = try linker.link()
 		
