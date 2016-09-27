@@ -62,7 +62,17 @@ There are more examples in the examples folder:
 
 ## Usage
 
-The project comes with a CLI application which you can invoke with `input/file.asm -o output/file.gb`.  
+Quick start:
+
+```bash
+git clone git@github.com:ulrikdamm/Assembler.git
+cd Assembler
+swift build -c release
+./.build/release/Assembler input.asm
+```
+
+You can compile the app from the Xcode project or by running `swift build` (the executable will be in .build/debug/Assembler)  
+You compile source code with `Assembler input.asm`.
 It also contains a dynamic framework which you can import into a macOS or iOS app.
 
 ## Project status
