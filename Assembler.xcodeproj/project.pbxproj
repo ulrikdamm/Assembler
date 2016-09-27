@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FF077B281D9A640C0088F749 /* smiley.asm in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF077B1F1D9A616A0088F749 /* smiley.asm */; };
+		FF077B291D9A67A50088F749 /* movement.asm in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF077B1E1D9A616A0088F749 /* movement.asm */; };
+		FF077B2A1D9A67A80088F749 /* helloworld.asm in CopyFiles */ = {isa = PBXBuildFile; fileRef = FF077B1D1D9A616A0088F749 /* helloworld.asm */; };
 		FF0C7D341D854E6100E6161B /* ExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0C7D331D854E6100E6161B /* ExpressionTests.swift */; };
 		FF1923C21D8C687300890EFF /* IntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1923C11D8C687300890EFF /* IntegrationTests.swift */; };
 		FF451FC31D84388400E54BD3 /* Assembler.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FF451FB91D84388400E54BD3 /* Assembler.framework */; };
@@ -39,6 +42,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		FF077B271D9A64060088F749 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				FF077B281D9A640C0088F749 /* smiley.asm in CopyFiles */,
+				FF077B291D9A67A50088F749 /* movement.asm in CopyFiles */,
+				FF077B2A1D9A67A80088F749 /* helloworld.asm in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FF451FE91D843A6A00E54BD3 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -51,6 +66,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		FF077B1D1D9A616A0088F749 /* helloworld.asm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm.asm; name = helloworld.asm; path = Examples/helloworld.asm; sourceTree = SOURCE_ROOT; };
+		FF077B1E1D9A616A0088F749 /* movement.asm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm.asm; name = movement.asm; path = Examples/movement.asm; sourceTree = SOURCE_ROOT; };
+		FF077B1F1D9A616A0088F749 /* smiley.asm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm.asm; name = smiley.asm; path = Examples/smiley.asm; sourceTree = SOURCE_ROOT; };
 		FF0C7D331D854E6100E6161B /* ExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ExpressionTests.swift; sourceTree = "<group>"; };
 		FF1923C11D8C687300890EFF /* IntegrationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IntegrationTests.swift; sourceTree = "<group>"; };
 		FF451FB91D84388400E54BD3 /* Assembler.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Assembler.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,6 +114,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		FF077B231D9A616D0088F749 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FF077B1D1D9A616A0088F749 /* helloworld.asm */,
+				FF077B1E1D9A616A0088F749 /* movement.asm */,
+				FF077B1F1D9A616A0088F749 /* smiley.asm */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 		FF451FAF1D84388400E54BD3 = {
 			isa = PBXGroup;
 			children = (
@@ -133,6 +161,7 @@
 		FF451FC61D84388400E54BD3 /* AssemblerTests */ = {
 			isa = PBXGroup;
 			children = (
+				FF077B231D9A616D0088F749 /* Resources */,
 				FF451FE51D8438A500E54BD3 /* AssemblerTests.swift */,
 				FF0C7D331D854E6100E6161B /* ExpressionTests.swift */,
 				FFDD34BC1D856EC100B09D03 /* ParserTests.swift */,
@@ -189,6 +218,7 @@
 				FF451FBE1D84388400E54BD3 /* Sources */,
 				FF451FBF1D84388400E54BD3 /* Frameworks */,
 				FF451FC01D84388400E54BD3 /* Resources */,
+				FF077B271D9A64060088F749 /* CopyFiles */,
 			);
 			buildRules = (
 			);

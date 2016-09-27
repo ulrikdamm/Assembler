@@ -24,28 +24,79 @@ public func formatBytes(bytes : [UInt8]) -> String {
 	return output
 }
 
-func assembleBlock(label : Label, constants : [String: Expression]) throws -> Linker.Block {
-	let assembler = Assembler(constants: constants)
-	let data = try label.instructions.map(assembler.assembleInstruction)
+struct ExpressionConstantExpansion {
+	let constants : [String: Expression]
 	
-	let origin = try label.options["org"]
-		.map { try assembler.expandExpressionConstants(expression: $0) }
-		.flatMap { expr -> Int? in
-			if case .value(let v) = expr { return v }
-			else { return nil }
+	func expand(_ expression : Expression, constantStack : [String] = []) throws -> Expression {
+		let lowercased = expression.mapSubExpressions { (expr) -> Expression in
+			switch expr {
+			case .constant(let str): return .constant(str.lowercased())
+			case _: return expr
+			}
+		}
+		
+		let newExpression = try lowercased.mapSubExpressions { expr throws -> Expression in
+			if case .constant(let str) = expr, let value = self.constants[str] {
+				guard !constantStack.contains(str) else {
+					throw ErrorMessage("Cannot recursively expand constants")
+				}
+				return try expand(value, constantStack: constantStack + [str])
+			} else {
+				return expr
+			}
+		}
+		
+		return newExpression
+	}
+}
+
+struct Assembler<InstructionSetType : InstructionSet> {
+	let constants : [String: Expression]
+	let instructionSet : InstructionSetType
+	
+	init(constants : [String: Expression]) {
+		var reducedConstants = constants
+		
+		for (key, value) in reducedConstants {
+			reducedConstants[key] = value.reduced()
+		}
+		
+		self.constants = reducedConstants
+		
+		instructionSet = InstructionSetType()
 	}
 	
-	let block = Linker.Block(
-		name: label.identifier.lowercased(),
-		origin: origin,
-		data: Array(data.joined())
-	)
-	return block
+	func assembleBlock(label : Label) throws -> Linker.Block {
+		let data = try label.instructions.map(instructionSet.assembleInstruction).joined()
+		
+		let constantExpander = ExpressionConstantExpansion(constants: constants)
+		let constantExpandedData = try data.map { opcode -> (Opcode) in
+			switch opcode {
+			case .expression(let expr, let resultType): return try .expression(constantExpander.expand(expr), resultType)
+			case _: return opcode
+			}
+		}
+		
+		let origin = try label.options["org"]
+			.map { expr in try constantExpander.expand(expr) }
+			.flatMap { expr -> Int? in
+				if case .value(let v) = expr { return v }
+				else { return nil }
+		}
+		
+		let block = Linker.Block(
+			name: label.identifier.lowercased(),
+			origin: origin,
+			data: constantExpandedData
+		)
+		return block
+	}
 }
 
 public func assembleProgram(source : [String]) throws -> [UInt8] {
 	if let program = try State(source: source).getProgram()?.value {
-		let blocks = try program.blocks.map { block in try assembleBlock(label: block, constants: program.constants) }
+		let assembler = Assembler<GameboyInstructionSet>(constants: program.constants)
+		let blocks = try program.blocks.map { block in try assembler.assembleBlock(label: block) }
 		let bytes = try Linker(blocks: blocks).link()
 		return bytes
 	} else {

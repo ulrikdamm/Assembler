@@ -35,10 +35,7 @@ extension Expression {
 			}
 		case .prefix(let str, let expr): return .prefix(str, expr.reduced())
 		case .suffix(let expr, let str): return .suffix(expr.reduced(), str)
-		case .parens(let expr):
-			let inner = expr.reduced()
-			if case .value(let v) = inner { return .value(v) }
-			return .parens(inner)
+		case .parens(let expr): return expr.reduced()
 		case .squareParens(let expr):
 			return .squareParens(expr.reduced())
 		case .binaryExpr(let left, let op, let right):

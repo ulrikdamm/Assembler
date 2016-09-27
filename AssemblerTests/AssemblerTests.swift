@@ -9,8 +9,8 @@
 import XCTest
 @testable import Assembler
 
-class AssemblerTests : XCTestCase {
-	let assembler = Assembler(constants: ["testconst": .value(0x1234), "testval": .value(0x12)])
+class GameboyInstructionSetTests : XCTestCase {
+	let instructionSet = GameboyInstructionSet()
 	
 	func assert(_ code : String, _ output : [Opcode]) {
 		let ins : Instruction
@@ -29,7 +29,7 @@ class AssemblerTests : XCTestCase {
 		let result : [Opcode]
 		
 		do {
-			result = try assembler.assembleInstruction(instruction: ins)
+			result = try instructionSet.assembleInstruction(instruction: ins)
 		} catch let error {
 			XCTFail("Error assembling instruction: \(error)")
 			return
@@ -53,7 +53,7 @@ class AssemblerTests : XCTestCase {
 		}
 		
 		do {
-			let _ = try assembler.assembleInstruction(instruction: ins)
+			let _ = try instructionSet.assembleInstruction(instruction: ins)
 			XCTFail()
 		} catch is ErrorMessage {
 			return
@@ -67,7 +67,7 @@ class AssemblerTests : XCTestCase {
 	}
 }
 
-class LoadTests : AssemblerTests {
+class GameboyLoadTests : GameboyInstructionSetTests {
 	func test_ld_b_d8()		{ assert("ld b, 0xff",			[0x06, 0xff]) }
 	func test_ld_c_d8()		{ assert("ld c, 0xff",			[0x0e, 0xff]) }
 	func test_ld_d_d8()		{ assert("ld d, 0xff",			[0x16, 0xff]) }
@@ -86,9 +86,9 @@ class LoadTests : AssemblerTests {
 	func test_ld_a_ff()		{ assert("ld a, 0xff",			[0x3e, 0xff]) }
 	
 	// Regression tests
-	func test_ld_a_const()	{ assert("ld a, [testconst]",	[0xfa, 0x34, 0x12]) }
-	func test_ld_a_const2()	{ assert("ld a, [testconst+1]",	[0xfa, 0x35, 0x12]) }
-	func test_ld_a_const3()	{ assert("ld a, (testval+1)",	[0x3e, 0x13]) }
+	func test_ld_a_const()	{ assert("ld a, [testconst]",	[.byte(0xfa), .expression(.constant("testconst"), .uint16)]) }
+	func test_ld_a_const2()	{ assert("ld a, [testconst+1]",	[.byte(0xfa), .expression(.binaryExpr(.constant("testconst"), "+", .value(1)), .uint16)]) }
+	func test_ld_a_const3()	{ assert("ld a, (testval+1)",	[.byte(0x3e), .expression(.binaryExpr(.constant("testval"), "+", .value(1)), .uint8)]) }
 	func test_ld_a_overflw(){ assertFails("ld a, 0x1234") }
 	
 	func test_ld_bc8_a()	{ assert("ld [bc], a",			[0x02]) }
@@ -116,7 +116,7 @@ class LoadTests : AssemblerTests {
 	func test_ld_nn_sp()	{ assert("ld 0x1234, sp",		[0x08, 0x34, 0x12]) }
 }
 
-class StackTests : AssemblerTests {
+class GameboyStackTests : GameboyInstructionSetTests {
 	func test_push_af()		{ assert("push af",				[0xf5]) }
 	func test_push_bc()		{ assert("push bc",				[0xc5]) }
 	func test_push_de()		{ assert("push de",				[0xd5]) }
@@ -128,7 +128,7 @@ class StackTests : AssemblerTests {
 	func test_pop_hl()		{ assert("pop hl",				[0xe1]) }
 }
 
-class ArithmeticTests : AssemblerTests {
+class GameboyArithmeticTests : GameboyInstructionSetTests {
 	func test_add_a_a()		{ assert("add a, a",			[0x87]) }
 	func test_add_a_b()		{ assert("add a, b",			[0x80]) }
 	func test_add_a_c()		{ assert("add a, c",			[0x81]) }
@@ -170,7 +170,7 @@ class ArithmeticTests : AssemblerTests {
 	func test_sbc_a_n()		{ assert("sbc a, 0xff",			[0xde, 0xff]) }
 }
 
-class LogicOperationTests : AssemblerTests {
+class GameboyLogicOperationTests : GameboyInstructionSetTests {
 	func test_and_a()		{ assert("and a",				[0xa7]) }
 	func test_and_b()		{ assert("and b",				[0xa0]) }
 	func test_and_c()		{ assert("and c",				[0xa1]) }
@@ -255,7 +255,7 @@ class LogicOperationTests : AssemblerTests {
 	func test_swap_hl8()	{ assert("swap [hl]",			[0xcb, 0x36]) }
 }
 
-class SpecialInstructionsTests : AssemblerTests {
+class GameboySpecialInstructionsTests : GameboyInstructionSetTests {
 	func test_daa()			{ assert("daa",					[0x27]) }
 	func test_cpl()			{ assert("cpl",					[0x2f]) }
 	func test_ccf()			{ assert("ccf",					[0x3f]) }
@@ -267,7 +267,7 @@ class SpecialInstructionsTests : AssemblerTests {
 	func test_ei()			{ assert("ei",					[0xfb]) }
 }
 
-class RotateShiftTests : AssemblerTests {
+class GameboyRotateShiftTests : GameboyInstructionSetTests {
 	func test_rlca()		{ assert("rlca",				[0x07]) }
 	func test_rla()			{ assert("rla",					[0x17]) }
 	func test_rrca()		{ assert("rrca",				[0x0f]) }
@@ -337,7 +337,7 @@ class RotateShiftTests : AssemblerTests {
 	func test_srl_hl8()		{ assert("srl [hl]",			[0xcb, 0x3e]) }
 }
 
-class BitOperationsTests : AssemblerTests {
+class GameboyBitOperationsTests : GameboyInstructionSetTests {
 	func test_bit_1_a()		{ assert("bit 2, a",			[0xcb, 0x57]) }
 	func test_bit_1_b()		{ assert("bit 2, b",			[0xcb, 0x50]) }
 	func test_bit_1_c()		{ assert("bit 2, c",			[0xcb, 0x51]) }
@@ -366,7 +366,7 @@ class BitOperationsTests : AssemblerTests {
 	func test_res_1_hl8()	{ assert("res 2, [hl]",			[0xcb, 0x96]) }
 }
 
-class JumpTests : AssemblerTests {
+class GameboyJumpTests : GameboyInstructionSetTests {
 	func test_jp_nn()		{ assert("jp 0x1234",			[0xc3, 0x34, 0x12]) }
 	func test_jp_nz_nn()	{ assert("jp nz, 0x1234",		[0xc2, 0x34, 0x12]) }
 	func test_jp_z_nn()		{ assert("jp z, 0x1234",		[0xca, 0x34, 0x12]) }
@@ -404,13 +404,13 @@ class JumpTests : AssemblerTests {
 	func test_jr_nc_n_neg()	{ assert("jr nc, -5",			[0x30, 0xfb]) }
 }
 
-class ExpressionOpcodeTests : AssemblerTests {
+class GameboyExpressionOpcodeTests : GameboyInstructionSetTests {
 	func test_label_ref()	{
-		assert("ld hl, label", [.byte(0x21), .label("label", relative: false)])
+		assert("ld hl, label", [.byte(0x21), .expression(.constant("label"), .uint16)])
 	}
 	
 	func test_label_ref_relative()	{
-		assert("jr label", [.byte(0x18), .label("label", relative: true)])
+		assert("jr label", [.byte(0x18), .expression(.constant("label"), .int8relative)])
 	}
 	
 	func test_expression_16()	{

@@ -9,17 +9,17 @@
 enum Opcode : CustomStringConvertible {
 	case byte(UInt8)
 	case word(UInt16)
-	case label(String, relative : Bool)
 	case expression(Expression, ResultType)
 	
-	enum ResultType { case uint16, uint8 }
+	enum ResultType { case uint16, uint8, int8relative }
 	
 	var description : String {
 		switch self {
 		case .byte(let b): return String(b, radix: 16)
 		case .word(let w): return String(w, radix: 16)
-		case .label(let name, _): return name
-		case .expression(let expr, _): return expr.description
+		case .expression(let expr, .uint16): return "\(expr.description) (uint16)"
+		case .expression(let expr, .uint8): return "\(expr.description) (uint8)"
+		case .expression(let expr, .int8relative): return "\(expr.description) (uint8 relative)"
 		}
 	}
 	
@@ -27,10 +27,9 @@ enum Opcode : CustomStringConvertible {
 		switch self {
 		case .byte(_): return 1
 		case .word(_): return 2
-		case .label(_, true): return 1
-		case .label(_, false): return 2
 		case .expression(_, .uint16): return 2
 		case .expression(_, .uint8): return 1
+		case .expression(_, .int8relative): return 1
 		}
 	}
 	
@@ -45,7 +44,6 @@ extension Opcode : Equatable {
 		switch (lhs, rhs) {
 		case (.byte(let nl), .byte(let nr)) where nl == nr: return true
 		case (.word(let nl), .word(let nr)) where nl == nr: return true
-		case (.label(let sl, let rl), .label(let sr, let rr)) where sl == sr && rl == rr: return true
 		case (.expression(let el, let rl), .expression(let er, let rr)) where el == er && rl == rr: return true
 		case _: return false
 		}
@@ -88,31 +86,34 @@ struct Linker {
 					data[allocation.start + offset] = n.lsb
 					data[allocation.start + offset + 1] = n.msb
 					offset += 2
-				case .label(let name, relative: false):
-					if let start = blockStart(name: name) {
-						let n16 = try UInt16.fromInt(value: start)
-						data[allocation.start + offset] = n16.lsb
-						data[allocation.start + offset + 1] = n16.msb
-						offset += 2
-					} else {
-						throw ErrorMessage("Unknown label ’\(name)‘")
-					}
-				case .label(let name, relative: true):
-					if let start = blockStart(name: name) {
-						let n16 = try UInt16.fromInt(value: start)
-						let current = allocation.start + offset + 1
-						let difference = Int(n16) - Int(current)
-						
-						do {
-							let value = try Int8.fromInt(value: difference)
-							data[allocation.start + offset] = UInt8(bitPattern: value)
-							offset += 1
-						} catch {
-							throw ErrorMessage("Label out of range for relative jump (\(difference) bytes away)")
-						}
-					} else {
-						throw ErrorMessage("Unknown label ’\(name)‘")
-					}
+//				case .label(let name, relative: false):
+//					if let start = blockStart(name: name) {
+//						let n16 = try UInt16.fromInt(value: start)
+//						data[allocation.start + offset] = n16.lsb
+//						data[allocation.start + offset + 1] = n16.msb
+//						offset += 2
+//					} else {
+//						throw ErrorMessage("Unknown label ’\(name)‘")
+//					}
+//				case .expression(let expr, .int8relative):
+//					let mapped = try expr.mapSubExpressions(map: replaceExpressionLabelValue)
+//					let reduced = mapped.reduced()
+//					guard case .value(let value) = reduced else {
+//						throw ErrorMessage("Invalid value `\(reduced)`")
+//					}
+//					guard let start = blockStart(name: labelName) else { throw ErrorMessage("Unknown label `\(labelName)`") }
+//					
+//					let n16 = try UInt16.fromInt(value: start)
+//					let current = allocation.start + offset + 1
+//					let difference = Int(n16) - Int(current)
+//					
+//					do {
+//						let value = try Int8.fromInt(value: difference)
+//						data[allocation.start + offset] = UInt8(bitPattern: value)
+//						offset += 1
+//					} catch {
+//						throw ErrorMessage("Label out of range for relative jump (\(difference) bytes away)")
+//					}
 				case .expression(let expr, let type):
 					let mapped = try expr.mapSubExpressions(map: replaceExpressionLabelValue)
 					let reduced = mapped.reduced()
@@ -129,6 +130,18 @@ struct Linker {
 						data[allocation.start + offset] = n16.lsb
 						data[allocation.start + offset + 1] = n16.msb
 						offset += 2
+					case .int8relative:
+						let n16 = try UInt16.fromInt(value: value)
+						let current = allocation.start + offset + 1
+						let difference = Int(n16) - Int(current)
+						
+						do {
+							let value = try Int8.fromInt(value: difference)
+							data[allocation.start + offset] = UInt8(bitPattern: value)
+							offset += 1
+						} catch {
+							throw ErrorMessage("Label out of range for relative jump (\(difference) bytes away)")
+						}
 					}
 				}	
 			}

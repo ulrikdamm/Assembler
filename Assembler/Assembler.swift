@@ -6,48 +6,19 @@
 //  Copyright © 2016 Ufd.dk. All rights reserved.
 //
 
-struct Assembler {
-	let constants : [String: Expression]
-	
-	init(constants : [String: Expression]) {
-		var c : [String: Expression] = [:]
-		
-		for (key, value) in constants {
-			c[key.lowercased()] = value
-		}
-		
-		self.constants = c
-	}
-	
-	func expandExpressionConstants(expression : Expression, constantStack : [String] = []) throws -> Expression {
-		let lowercased = expression.mapSubExpressions { (expr) -> Expression in
-			switch expr {
-			case .constant(let str): return .constant(str.lowercased())
-			case _: return expr
-			}
-		}
-		
-		let newExpression = try lowercased.mapSubExpressions { expr throws -> Expression in
-			if case .constant(let str) = expr, let value = self.constants[str] {
-				guard !constantStack.contains(str) else {
-					throw ErrorMessage("Cannot recursively expand constants")
-				}
-				return try self.expandExpressionConstants(expression: value, constantStack: constantStack + [str])
-			} else {
-				return expr
-			}
-		}
-		
-		return newExpression
-	}
-	
+protocol InstructionSet {
+	init()
+	func assembleInstruction(instruction : Instruction) throws -> [Opcode]
+}
+
+struct GameboyInstructionSet : InstructionSet {
 	func assembleLogicOperation(_ instruction : Instruction, mask : UInt8, directOpcode : UInt8) throws -> [Opcode] {
 		let operand = try getSingleOperand(instruction: instruction)
 		
 		if let targetReg = try? getRegister8Value(operand: operand) {
 			return [.byte(mask | targetReg)]
 		} else {
-			return [.byte(directOpcode), try assembleExpression8(from: operand, signed: false)]
+			return [.byte(directOpcode), try uint8Opcode(from: operand)]
 		}
 	}
 	
@@ -75,7 +46,7 @@ struct Assembler {
 		if let targetReg = try? getRegister8Value(operand: operandR) {
 			return [.byte(mask | targetReg)]
 		} else {
-			return [.byte(directOpcode), try assembleExpression8(from: operandR, signed: false)]
+			return [.byte(directOpcode), try uint8Opcode(from: operandR)]
 		}
 	}
 	
@@ -96,7 +67,7 @@ struct Assembler {
 	func assembleJp(_ instruction : Instruction, call : Bool) throws -> [Opcode] {
 		if let (conditionOperand, labelOperand) = try? getTwoOperands(instruction: instruction) {
 			let condition = try getLabelValue(operand: conditionOperand)
-			let target = try assembleExpression16(from: labelOperand)
+			let target = try uint16Opcode(from: labelOperand)
 			
 			let jpOpcode : UInt8
 			switch condition {
@@ -117,7 +88,7 @@ struct Assembler {
 			guard !call else { throw ErrorMessage("Invalid call operand") }
 			return [.byte(0xe9)]
 		case _:
-			return try [.byte(call ? 0xcd : 0xc3)] + assembleExpression16(from: labelOperand)
+			return try [.byte(call ? 0xcd : 0xc3)] + uint16Opcode(from: labelOperand)
 		}
 	}
 	
@@ -138,7 +109,7 @@ struct Assembler {
 		
 		switch target {
 		case .constant(let name):
-			targetCode = .label(name, relative: true)
+			targetCode = .expression(.constant(name), .int8relative)
 		case .value(let value):
 			let s8 = try Int8.fromInt(value: value)
 			targetCode = .byte(UInt8(bitPattern: s8))
@@ -286,8 +257,10 @@ struct Assembler {
 		switch (to, from) {
 		case (.constant("a"), .squareParens(.constant("bc"))): return [.byte(0x0a)]
 		case (.constant("a"), .squareParens(.constant("de"))): return [.byte(0x1a)]
+		case (.constant("a"), .squareParens(.constant("hl"))): return [.byte(0x7e)]
 		case (.squareParens(.constant("bc")), .constant("a")): return [.byte(0x02)]
 		case (.squareParens(.constant("de")), .constant("a")): return [.byte(0x12)]
+		case (.squareParens(.constant("hl")), .constant("a")): return [.byte(0x77)]
 		case (.constant("a"), .squareParens(.binaryExpr(.value(0xff00), "+", .constant("c")))): return [.byte(0xf2)]
 		case (.squareParens(.binaryExpr(.value(0xff00), "+", .constant("c"))), .constant("a")): return [.byte(0xe2)]
 		case (.constant("sp"), .constant("hl")): return [.byte(0xf9)]
@@ -304,22 +277,20 @@ struct Assembler {
 		case (.constant("a"), .squareParens(.suffix(.constant("hl"), "-"))): return [.byte(0x3a)]
 		case (.squareParens(.suffix(.constant("hl"), "+")), .constant("a")): return [.byte(0x22)]
 		case (.squareParens(.suffix(.constant("hl"), "-")), .constant("a")): return [.byte(0x32)]
-		case (.constant("bc"), let value): return try [.byte(0x01)] + assembleExpression16(from: value) 
-		case (.constant("de"), let value): return try [.byte(0x11)] + assembleExpression16(from: value)
-		case (.constant("hl"), let value): return try [.byte(0x21)] + assembleExpression16(from: value)
-		case (.constant("sp"), let value):  return try [.byte(0x31)] + assembleExpression16(from: value)
+		case (.constant("bc"), let value): return try [.byte(0x01)] + uint16Opcode(from: value) 
+		case (.constant("de"), let value): return try [.byte(0x11)] + uint16Opcode(from: value)
+		case (.constant("hl"), let value): return try [.byte(0x21)] + uint16Opcode(from: value)
+		case (.constant("sp"), let value):  return try [.byte(0x31)] + uint16Opcode(from: value)
 		case (.constant("a"), .squareParens(.value(let n))) where n >= 0xff00:
 			let n8 = try UInt16.fromInt(value: n).lsb
 			return [.byte(0xf0), .byte(n8)]
 		case (.squareParens(.value(let n)), .constant("a")) where n >= 0xff00:
 			let n8 = try UInt16.fromInt(value: n).lsb
 			return [.byte(0xe0), .byte(n8)]
-		case (.constant("a"), .squareParens(.value(let n))):
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0xfa), .byte(n16.lsb), .byte(n16.msb)]
-		case (.squareParens(.value(let n)), .constant("a")):
-			let n16 = try UInt16.fromInt(value: n)
-			return [.byte(0xea), .byte(n16.lsb), .byte(n16.msb)]
+		case (.constant("a"), .squareParens(let expr)):
+			return try [.byte(0xfa)] + uint16Opcode(from: expr)
+		case (.squareParens(let expr), .constant("a")):
+			return try [.byte(0xea)] + uint16Opcode(from: expr)
 		case _: break
 		}
 		
@@ -329,7 +300,7 @@ struct Assembler {
 				return [.byte(0x40 | (toReg << 3) | fromReg)]
 			}
 			
-			return [.byte(0x06 | (toReg << 3)), try assembleExpression8(from: from, signed: false)]
+			return [.byte(0x06 | (toReg << 3)), try uint8Opcode(from: from)]
 		}
 		
 		throw ErrorMessage("Invalid load from \(from) to \(to)")
@@ -435,7 +406,7 @@ struct Assembler {
 			throw ErrorMessage("Only one operand required")
 		}
 		
-		return try expandExpressionConstants(expression: instruction.operands[0]).reduced()
+		return instruction.operands[0].reduced()
 	}
 	
 	func getTwoOperands(instruction : Instruction) throws -> (Expression, Expression) {
@@ -444,8 +415,8 @@ struct Assembler {
 		}
 		
 		return (
-			try expandExpressionConstants(expression: instruction.operands[0]).reduced(),
-			try expandExpressionConstants(expression: instruction.operands[1]).reduced()
+			expression: instruction.operands[0].reduced(),
+			expression: instruction.operands[1].reduced()
 		)
 	}
 	
@@ -468,10 +439,10 @@ struct Assembler {
 			throw ErrorMessage("Operands required")
 		}
 		
-		return try instruction.operands.map { try expandExpressionConstants(expression: $0).reduced() }
+		return instruction.operands.map { expr in expr.reduced() }
 	}
 	
-	func assembleExpression8(from expression : Expression, signed : Bool) throws -> Opcode {
+	func uint8Opcode(from expression : Expression, signed : Bool = false) throws -> Opcode {
 		let reduced = expression.reduced()
 		switch reduced {
 		case .value(let value):
@@ -484,8 +455,8 @@ struct Assembler {
 			}
 			
 			return .byte(n8)
-		case .constant(let name):
-			throw ErrorMessage("Unknown constant `\(name)`")
+//		case .constant(let name):
+//			throw ErrorMessage("Unknown constant `\(name)`")
 		case _:
 			if signed {
 				throw ErrorMessage("Invalid expression `\(expression)`") 
@@ -495,14 +466,14 @@ struct Assembler {
 		}
 	}
 	
-	func assembleExpression16(from expression : Expression) throws -> [Opcode] {
+	func uint16Opcode(from expression : Expression) throws -> [Opcode] {
 		let reduced = expression.reduced()
 		switch reduced {
 		case .value(let value):
 			let n16 = try UInt16.fromInt(value: value)
 			return [.byte(n16.lsb), .byte(n16.msb)]
-		case .constant(let name):
-			return [.label(name, relative: false)]
+//		case .constant(let name):
+//			return [.label(name, relative: false)]
 		case _:
 			return [.expression(reduced, .uint16)]
 		}

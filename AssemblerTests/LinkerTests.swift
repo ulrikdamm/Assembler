@@ -13,8 +13,8 @@ class LinkerTests : XCTestCase {
 	let block1 = Linker.Block(name: "block1", origin: nil, data: [.byte(0x01), .byte(0x02), .byte(0x03)])
 	let block2 = Linker.Block(name: "block2", origin: nil, data: [.byte(0x04), .byte(0x05)])
 	let block3 = Linker.Block(name: "block3", origin: 0x06, data: [.byte(0x06), .byte(0x07)])
-	let block4 = Linker.Block(name: "block4", origin: nil, data: [.byte(0x08), .label("block2", relative: false)])
-	let block7 = Linker.Block(name: "block7", origin: nil, data: [.byte(0x0b), .label("block2", relative: true)])
+	let block4 = Linker.Block(name: "block4", origin: nil, data: [.byte(0x08), .expression(.constant("block2"), .uint16)])
+	let block7 = Linker.Block(name: "block7", origin: nil, data: [.byte(0x0b), .expression(.constant("block2"), .int8relative)])
 	
 	static let simpleExpression = Expression.binaryExpr(.value(2), "+", .value(3))
 	static let labelExpression = Expression.binaryExpr(.constant("block2"), "+", .value(2))
