@@ -305,13 +305,6 @@ struct GameboyInstructionSet : InstructionSet {
 		return result.map { Opcode.byte($0) }
 	}
 	
-	func getAssembler(forMnemonic mnemonic : String) -> InstructionAssembler? {
-		switch mnemonic {
-		case "jr": return AssembleJr()
-		case _: return nil
-		}
-	}
-	
 	func assembleInstruction(instruction : Instruction) throws -> [Opcode] {
 		do {
 			switch instruction.mnemonic {
@@ -331,8 +324,7 @@ struct GameboyInstructionSet : InstructionSet {
 			case "ld": return try assembleLd(instruction)
 				
 			case "jp": return try assembleJp(instruction, call: false)
-			case "jr": //return try assembleJr(instruction)
-				return try AssembleJr().assemble(instruction)
+			case "jr": return try assembleJr(instruction)
 			case "call": return try assembleJp(instruction, call: true)
 			case "rst": return try assembleRst(instruction)
 			case "ret": return try assembleRet(instruction)
@@ -388,55 +380,6 @@ struct GameboyInstructionSet : InstructionSet {
 		case .squareParens(.constant("hl")): return 6
 		case .constant("a"): return 7
 		default: throw ErrorMessage("Not a valid register: \(operand)")
-		}
-	}
-	
-//	static var reservedConstants = ["a", "f", "b", "c", "d", "e", "h", "l", "af", "bc", "de", "hl", "pc", "sp"]
-}
-
-protocol InstructionAssembler {
-	func assemble(_ instruction : Instruction) throws -> [Opcode]
-}
-
-struct AssembleJr : InstructionAssembler {
-	func assemble(_ instruction : Instruction) throws -> [Opcode] {
-		let (condition, target) = try getConditionAndTarget(instruction: instruction)
-		
-		return try [
-			conditionOpcode(condition: condition),
-			targetOpcode(target: target)
-		]
-	}
-	
-	func getConditionAndTarget(instruction : Instruction) throws -> (condition : Expression?, target : Expression) {
-		if let (condition, target) = try? instruction.getTwoOperands() {
-			return (condition, target)
-		} else {
-			let target = try instruction.getSingleOperand()
-			return (nil, target)
-		}
-	}
-	
-	func targetOpcode(target : Expression) throws -> Opcode {
-		switch target {
-		case .constant(let name):
-			return .expression(.constant(name), .int8relative)
-		case .value(let value):
-			let s8 = try Int8.fromInt(value: value)
-			return .byte(UInt8(bitPattern: s8))
-		case _:
-			throw ErrorMessage("Invalid jump target: `\(target)`")
-		}
-	}
-	
-	func conditionOpcode(condition : Expression?) throws -> Opcode {
-		switch condition {
-		case .constant("z")?: return .byte(0x28)
-		case .constant("nz")?: return .byte(0x20)
-		case .constant("c")?: return .byte(0x38)
-		case .constant("nc")?: return .byte(0x30)
-		case nil: return .byte(0x18)
-		case _: throw ErrorMessage("Invalid condition ’\(condition)‘")
 		}
 	}
 }
