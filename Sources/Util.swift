@@ -24,75 +24,6 @@ public func formatBytes(bytes : [UInt8]) -> String {
 	return output
 }
 
-struct ExpressionConstantExpansion {
-	let constants : [String: Expression]
-	
-	func expand(_ expression : Expression, constantStack : [String] = []) throws -> Expression {
-		let lowercased = expression.mapSubExpressions { (expr) -> Expression in
-			switch expr {
-			case .constant(let str): return .constant(str.lowercased())
-			case _: return expr
-			}
-		}
-		
-		let newExpression = try lowercased.mapSubExpressions { expr throws -> Expression in
-			if case .constant(let str) = expr, let value = self.constants[str] {
-				guard !constantStack.contains(str) else {
-					throw ErrorMessage("Cannot recursively expand constants")
-				}
-				return try expand(value, constantStack: constantStack + [str])
-			} else {
-				return expr
-			}
-		}
-		
-		return newExpression
-	}
-}
-
-struct Assembler<InstructionSetType : InstructionSet> {
-	let constants : [String: Expression]
-	let instructionSet : InstructionSetType
-	
-	init(constants : [String: Expression]) {
-		var reducedConstants = constants
-		
-		for (key, value) in reducedConstants {
-			reducedConstants[key] = value.reduced()
-		}
-		
-		self.constants = reducedConstants
-		
-		instructionSet = InstructionSetType()
-	}
-	
-	func assembleBlock(label : Label) throws -> Linker.Block {
-		let data = try label.instructions.map(instructionSet.assembleInstruction).joined()
-		
-		let constantExpander = ExpressionConstantExpansion(constants: constants)
-		let constantExpandedData = try data.map { opcode -> (Opcode) in
-			switch opcode {
-			case .expression(let expr, let resultType): return try .expression(constantExpander.expand(expr), resultType)
-			case _: return opcode
-			}
-		}
-		
-		let origin = try label.options["org"]
-			.map { expr in try constantExpander.expand(expr) }
-			.flatMap { expr -> Int? in
-				if case .value(let v) = expr { return v }
-				else { return nil }
-		}
-		
-		let block = Linker.Block(
-			name: label.identifier.lowercased(),
-			origin: origin,
-			data: constantExpandedData
-		)
-		return block
-	}
-}
-
 public func assembleProgram(source : [String]) throws -> [UInt8] {
 	if let program = try State(source: source).getProgram()?.value {
 		let assembler = Assembler<GameboyInstructionSet>(constants: program.constants)
@@ -125,5 +56,85 @@ extension Int8 {
 	static func fromInt(value : Int) throws -> Int8 {
 		guard (-128...127).contains(value) else { throw ErrorMessage("Value out of signed byte range") }
 		return Int8(value)
+	}
+}
+
+extension Expression {
+	func uint16Opcode() throws -> [Opcode] {
+		switch reduced() {
+		case .value(let value):
+			let n16 = try UInt16.fromInt(value: value)
+			return [.byte(n16.lsb), .byte(n16.msb)]
+		case let expr:
+			return [.expression(expr, .uint16)]
+		}
+	}
+	
+	func uint8Opcode(signed : Bool = false) throws -> Opcode {
+		switch reduced() {
+		case .value(let value):
+			let n8 : UInt8
+			
+			if signed {
+				n8 = try UInt8(bitPattern: Int8.fromInt(value: value))
+			} else {
+				n8 = try UInt8.fromInt(value: value)
+			}
+			
+			return .byte(n8)
+		case let expr:
+			if signed {
+				throw ErrorMessage("Invalid expression `\(self)`") 
+			} else {
+				return .expression(expr, .uint8)
+			}
+		}
+	}
+}
+
+extension Instruction {
+	func getSingleOperand() throws -> Expression {
+		guard operands.count > 0 else {
+			throw ErrorMessage("Missing operand")
+		}
+		
+		guard operands.count == 1 else {
+			throw ErrorMessage("Only one operand required")
+		}
+		
+		return operands[0].reduced()
+	}
+	
+	func getTwoOperands() throws -> (Expression, Expression) {
+		guard operands.count == 2 else {
+			throw ErrorMessage("Missing operand")
+		}
+		
+		return (
+			expression: operands[0].reduced(),
+			expression: operands[1].reduced()
+		)
+	}
+	
+	func getOperandRaw(index : Int) throws -> Expression {
+		guard operands.count >= index else {
+			throw ErrorMessage("Missing operand")
+		}
+		
+		return operands[index]
+	}
+	
+	func getNoOperands() throws {
+		guard operands.count == 0 else {
+			throw ErrorMessage("No operands required")
+		}
+	}
+	
+	func getAtLeastOneOperand() throws -> [Expression] {
+		guard operands.count > 0 else {
+			throw ErrorMessage("Operands required")
+		}
+		
+		return operands.map { expr in expr.reduced() }
 	}
 }
