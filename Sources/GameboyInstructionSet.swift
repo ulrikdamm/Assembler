@@ -6,7 +6,11 @@
 //  Copyright © 2016 Ufd.dk. All rights reserved.
 //
 
-struct GameboyInstructionSet : InstructionSet {
+public struct GameboyInstructionSet : InstructionSet {
+	public init() {
+		
+	}
+	
 	func assembleLogicOperation(_ instruction : Instruction, mask : UInt8, directOpcode : UInt8) throws -> [Opcode] {
 		let operand = try instruction.getSingleOperand()
 		
@@ -196,7 +200,8 @@ struct GameboyInstructionSet : InstructionSet {
 					}
 					bytes.append(.byte(UInt8(scalar.value)))
 				}
-			default: throw ErrorMessage("Expected direct value")
+			case _:
+				try bytes.append(operand.uint8Opcode())
 			}
 		}
 		
@@ -305,7 +310,7 @@ struct GameboyInstructionSet : InstructionSet {
 		return result.map { Opcode.byte($0) }
 	}
 	
-	func assembleInstruction(instruction : Instruction) throws -> [Opcode] {
+	public func assembleInstruction(instruction : Instruction) throws -> [Opcode] {
 		do {
 			switch instruction.mnemonic {
 			case "xor": return try assembleLogicOperation(instruction, mask: 0xa8, directOpcode: 0xee)

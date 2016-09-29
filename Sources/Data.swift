@@ -6,14 +6,14 @@
 //  Copyright © 2016 Ufd.dk. All rights reserved.
 //
 
-struct Instruction {
+public struct Instruction {
 	let mnemonic : String
 	let operands : [Expression]
 	let line : Int
 }
 
 extension Instruction : CustomStringConvertible {
-	var description: String {
+	public var description: String {
 		let ops = operands.map { $0.description }.joined(separator: ", ")
 		return "\(mnemonic) \(ops)"
 	}

@@ -6,8 +6,7 @@
 //  Copyright © 2016 Ufd.dk. All rights reserved.
 //
 
-protocol InstructionSet {
-	init()
+public protocol InstructionSet {
 	func assembleInstruction(instruction : Instruction) throws -> [Opcode]
 }
 
@@ -37,11 +36,11 @@ struct ExpressionConstantExpansion {
 	}
 }
 
-struct Assembler<InstructionSetType : InstructionSet> {
+struct Assembler {
 	let constants : [String: Expression]
-	let instructionSet : InstructionSetType
+	let instructionSet : InstructionSet
 	
-	init(constants : [String: Expression]) {
+	init(instructionSet : InstructionSet, constants : [String: Expression]) {
 		var reducedConstants = constants
 		
 		for (key, value) in reducedConstants {
@@ -49,8 +48,7 @@ struct Assembler<InstructionSetType : InstructionSet> {
 		}
 		
 		self.constants = reducedConstants
-		
-		instructionSet = InstructionSetType()
+		self.instructionSet = instructionSet
 	}
 	
 	func assembleBlock(label : Label) throws -> Linker.Block {

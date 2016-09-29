@@ -6,14 +6,14 @@
 //  Copyright © 2016 Ufd.dk. All rights reserved.
 //
 
-enum Opcode : CustomStringConvertible {
+public enum Opcode : CustomStringConvertible {
 	case byte(UInt8)
 	case word(UInt16)
 	case expression(Expression, ResultType)
 	
-	enum ResultType { case uint16, uint8, int8relative }
+	public enum ResultType { case uint16, uint8, int8relative }
 	
-	var description : String {
+	public var description : String {
 		switch self {
 		case .byte(let b): return String(b, radix: 16)
 		case .word(let w): return String(w, radix: 16)
@@ -40,7 +40,7 @@ enum Opcode : CustomStringConvertible {
 }
 
 extension Opcode : Equatable {
-	static func ==(lhs : Opcode, rhs : Opcode) -> Bool {
+	public static func ==(lhs : Opcode, rhs : Opcode) -> Bool {
 		switch (lhs, rhs) {
 		case (.byte(let nl), .byte(let nr)) where nl == nr: return true
 		case (.word(let nl), .word(let nr)) where nl == nr: return true

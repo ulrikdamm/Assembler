@@ -6,7 +6,7 @@
 //  Copyright © 2016 Ufd.dk. All rights reserved.
 //
 
-indirect enum Expression {
+public indirect enum Expression {
 	case value(Int)
 	case string(String)
 	case constant(String)
@@ -74,7 +74,7 @@ extension Expression {
 }
 
 extension Expression : CustomStringConvertible, CustomDebugStringConvertible {
-	var description : String {
+	public var description : String {
 		switch self {
 		case .value(let v): return "\(v)"
 		case .string(let str): return "\"\(str)\""
@@ -87,7 +87,7 @@ extension Expression : CustomStringConvertible, CustomDebugStringConvertible {
 		}
 	}
 	
-	var debugDescription : String {
+	public var debugDescription : String {
 		switch self {
 		case .value(let v): return "<v: \(v)>"
 		case .string(let str): return "<s: \"\(str)\">"
@@ -102,7 +102,7 @@ extension Expression : CustomStringConvertible, CustomDebugStringConvertible {
 }
 
 extension Expression : Equatable {
-	static func ==(lhs : Expression, rhs : Expression) -> Bool {
+	public static func ==(lhs : Expression, rhs : Expression) -> Bool {
 		switch (lhs, rhs) {
 		case (.value(let v1), .value(let v2)) where v1 == v2: return true
 		case (.string(let str1), .string(let str2)) where str1 == str2: return true

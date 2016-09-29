@@ -24,9 +24,9 @@ public func formatBytes(bytes : [UInt8]) -> String {
 	return output
 }
 
-public func assembleProgram(source : [String]) throws -> [UInt8] {
+public func assembleProgram(source : [String], instructionSet : InstructionSet) throws -> [UInt8] {
 	if let program = try State(source: source).getProgram()?.value {
-		let assembler = Assembler<GameboyInstructionSet>(constants: program.constants)
+		let assembler = Assembler(instructionSet: instructionSet, constants: program.constants)
 		let blocks = try program.blocks.map { block in try assembler.assembleBlock(label: block) }
 		let bytes = try Linker(blocks: blocks).link()
 		return bytes

@@ -12,14 +12,16 @@ struct Arguments {
 	let inputFile : URL
 	let outputFile : URL
 	let symbolsFile : URL?
+	let systemType : String?
 	
 	init(fromRaw arguments : [String]) throws {
-		enum State { case none, parseOutput, parseSymbols }
+		enum State { case none, parseOutput, parseSymbols, parseSystemType }
 		var state = State.none
 		
 		var inputURL : URL?
 		var outputURL : URL?
 		var symbolsURL : URL?
+		var systemType : String?
 		
 		for argument in arguments {
 			switch (state, argument) {
@@ -33,10 +35,15 @@ struct Arguments {
 				guard symbolsURL == nil else { throw ErrorMessage("Symbols url redeclared") }
 				symbolsURL = url
 				state = .none
+			case (.parseSystemType, let string):
+				systemType = string
+				state = .none
 			case (.none, "-o"):
 				state = .parseOutput
 			case (.none, "--output-symbols"):
 				state = .parseSymbols
+			case (.none, "--target"):
+				state = .parseSystemType
 			case (.none, let string):
 				let url = URL(fileURLWithPath: string)
 				guard inputURL == nil else { throw ErrorMessage("Input url redeclared") }
@@ -48,6 +55,7 @@ struct Arguments {
 		case .none: break
 		case .parseOutput: throw ErrorMessage("Missing value for -o")
 		case .parseSymbols: throw ErrorMessage("Missing value for --output-symbols")
+		case .parseSystemType: throw ErrorMessage("Missing value for --target") 
 		}
 		
 		guard let inputURLValue = inputURL else { throw ErrorMessage("Missing input") }
@@ -63,27 +71,40 @@ struct Arguments {
 				.appendingPathExtension("gb") 
 		}
 		
-		if let symbolsURL = symbolsURL {
-			symbolsFile = symbolsURL
-		} else {
-			symbolsFile = nil
-		}
+		self.symbolsFile = symbolsURL
+		self.systemType = systemType
 	}
 }
 
 func main() {
 	do {
 		let rawArguments = Array(CommandLine.arguments.dropFirst())
-		guard rawArguments.count > 0 else { print("Usage: input/file.asm [-o output/file.asm] [--output-symbols symbols/file.symbols]"); return } 
+		guard rawArguments.count > 0 else {
+			print("Usage: input/file.asm\n"
+				+ "\t[-o output/file.asm]\n"
+				+ "\t[--output-symbols symbols/file.symbols]\n"
+				+ "\t[--target gameboy | intel8080]")
+			return
+		}
+		
 		let arguments = try Arguments(fromRaw: rawArguments)
 		let source = try String(contentsOf: arguments.inputFile)
 		
 		guard let program = try State(source: source).getProgram()?.value else { throw ErrorMessage("Couldn't parse source") }
 		
-		let assembler = Assembler<GameboyInstructionSet>(constants: program.constants)
+		let instructionSet : InstructionSet
+		
+		switch (arguments.systemType ?? "gameboy") {
+		case "intel8080":
+			instructionSet = Intel8080InstructionSet()
+			print("*** Warning: Assembling for Intel 8080 is still experimental ***")
+		case "gameboy": instructionSet = GameboyInstructionSet()
+		case let target: throw ErrorMessage("Unknown system target `\(target)` (Supported targets: gameboy, intel8080)")
+		}
+		
+		let assembler = Assembler(instructionSet: instructionSet, constants: program.constants)
 		let blocks = try program.blocks.map { block in try assembler.assembleBlock(label: block) }
 		
-//		let blocks = try program.blocks.map { block in try assembleBlock(label: block, constants: program.constants) }
 		let linker = Linker(blocks: blocks)
 		let bytes = try linker.link()
 		
