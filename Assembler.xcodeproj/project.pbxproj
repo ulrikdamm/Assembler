@@ -29,6 +29,7 @@
 		FF451FF51D843A7300E54BD3 /* Linker.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD61D84389800E54BD3 /* Linker.swift */; };
 		FF451FF61D843A7300E54BD3 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD71D84389800E54BD3 /* Parser.swift */; };
 		FF451FF71D843A7300E54BD3 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD81D84389800E54BD3 /* Util.swift */; };
+		FFAD934D1DB408F300686426 /* AssemblyParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFAD934C1DB408F300686426 /* AssemblyParser.swift */; };
 		FFC77FC61D9C16F200BF3519 /* GameboyInstructionSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF077B2D1D9ADD0C0088F749 /* GameboyInstructionSet.swift */; };
 		FFC77FC71D9C16F300BF3519 /* Intel8080InstructionSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF077B2F1D9BDB9D0088F749 /* Intel8080InstructionSet.swift */; };
 		FFDD34BD1D856EC100B09D03 /* ParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFDD34BC1D856EC100B09D03 /* ParserTests.swift */; };
@@ -90,6 +91,7 @@
 		FF451FE51D8438A500E54BD3 /* AssemblerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssemblerTests.swift; sourceTree = "<group>"; };
 		FF451FEB1D843A6A00E54BD3 /* AssemblerCLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AssemblerCLI; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF451FED1D843A6A00E54BD3 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		FFAD934C1DB408F300686426 /* AssemblyParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssemblyParser.swift; sourceTree = "<group>"; };
 		FFDD34BC1D856EC100B09D03 /* ParserTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParserTests.swift; sourceTree = "<group>"; };
 		FFEBFE9F1D8BFFC400FCFDB3 /* LinkerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LinkerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -158,6 +160,7 @@
 				FF451FD51D84389800E54BD3 /* Expression.swift */,
 				FF451FD61D84389800E54BD3 /* Linker.swift */,
 				FF451FD71D84389800E54BD3 /* Parser.swift */,
+				FFAD934C1DB408F300686426 /* AssemblyParser.swift */,
 				FF451FD81D84389800E54BD3 /* Util.swift */,
 				FF077B2D1D9ADD0C0088F749 /* GameboyInstructionSet.swift */,
 				FF077B2F1D9BDB9D0088F749 /* Intel8080InstructionSet.swift */,
@@ -329,6 +332,7 @@
 				FF077B301D9BDB9D0088F749 /* Intel8080InstructionSet.swift in Sources */,
 				FF451FD91D84389800E54BD3 /* Assembler.swift in Sources */,
 				FF451FE11D84389800E54BD3 /* Parser.swift in Sources */,
+				FFAD934D1DB408F300686426 /* AssemblyParser.swift in Sources */,
 				FF451FDB1D84389800E54BD3 /* Data.swift in Sources */,
 				FF451FDD1D84389800E54BD3 /* Expression.swift in Sources */,
 				FF077B2E1D9ADD0C0088F749 /* GameboyInstructionSet.swift in Sources */,

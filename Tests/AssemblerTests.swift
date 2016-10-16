@@ -16,7 +16,8 @@ class GameboyInstructionSetTests : XCTestCase {
 		let ins : Instruction
 		
 		do {
-			guard let i = try State(source: code).getInstruction()?.value else {
+			let state = State(source: code)
+			guard let i = try AssemblyParser.getInstruction(state)?.value else {
 				XCTFail("Couldn't compile: \(code)"); return
 			}
 			ins = i
@@ -42,7 +43,8 @@ class GameboyInstructionSetTests : XCTestCase {
 		let ins : Instruction
 		
 		do {
-			guard let i = try State(source: code).getInstruction()?.value else {
+			let state = State(source: code)
+			guard let i = try AssemblyParser.getInstruction(state)?.value else {
 				XCTFail("Couldn't compile: \(code)"); return
 			}
 			ins = i

@@ -14,7 +14,8 @@ class ExpressionTests : XCTestCase {
 		let result : Expression
 		
 		do {
-			guard let r = try State(source: code).getExpression()?.value else {
+			let state = State(source: code)
+			guard let r = try AssemblyParser.getExpression(state)?.value else {
 				XCTFail("Couldn't parse expression: `\(code)`"); return
 			}
 			result = r

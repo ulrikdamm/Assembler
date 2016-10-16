@@ -9,10 +9,6 @@
 struct State {
 	struct ParseError : Error {
 		enum Reason {
-			case constantRedefinition(constant : String)
-			case expectedLabelOrDefine
-			case expectedSeparator
-			case expectedExpression
 			case expectedMatch(match : String)
 		}
 		
@@ -24,17 +20,13 @@ struct State {
 			self.state = state
 		}
 		
-		var localizedDescription : String {
-			let message : String
-			
+		var message : String {
 			switch reason {
-			case .constantRedefinition(let constant): message = "Constant `\(constant)` already defined"
-			case .expectedLabelOrDefine: message = "Expected label or constant definition"
-			case .expectedSeparator: message = "Expected end of instruction (newline or semicolon)"
-			case .expectedExpression: message = "Expected value, register or expression"
-			case .expectedMatch(let match): message = "Expected `\(match)`"
+			case .expectedMatch(let match): return "Expected `\(match)`"
 			}
-			
+		}
+		
+		var localizedDescription : String {
 			return "Error on line \(state.line): \(message)"
 		}
 	}
@@ -232,232 +224,5 @@ struct State {
 		if state.atEnd { return state }
 		guard let (c, state1) = state.getChar(), c == "\n" || c == ";" else { return nil }
 		return state1.getSeparator() ?? state1
-	}
-	
-	func getInstruction() throws -> (value : Instruction, state : State)? {
-		var state = ignoreWhitespace(allowNewline: true)
-		let line = state.line
-		
-		var operands : [Expression] = []
-		
-		guard let (mnemonic, newState1) = state.getIdentifier() else { return nil }
-		state = newState1
-		
-		while let (op, newState2) = try state.getExpression() {
-			state = newState2
-			operands.append(op)
-			
-			if let (char, newState3) = state.ignoreWhitespace().getChar(), char == "," {
-				state = newState3
-			} else {
-				break
-			}
-		}
-		
-		guard let newState2 = state.getSeparator() else { return nil }
-		state = newState2
-		
-		let instruction = Instruction(mnemonic: mnemonic, operands: operands, line: line)
-		return (instruction, state)
-	}
-	
-	func getInstructionList() throws -> (value : [Instruction], state : State)? {
-		var state = ignoreWhitespace()
-		var instructions : [Instruction] = []
-		
-		while let (instruction, newState) = try state.getInstruction() {
-			instructions.append(instruction)
-			state = newState
-		}
-		
-		return (instructions, state)
-	}
-	
-	func getLabel() throws -> (value : Label, state : State)? {
-		var state = ignoreWhitespace(allowNewline: true)
-		let options : [String: Expression]
-		
-		if let (optionList, newState0) = try state.getOptionList() {
-			state = newState0
-			options = optionList
-		} else {
-			options = [:]
-		}
-		
-		state = state.ignoreWhitespace(allowNewline: true)
-		
-		guard let (name, newState1) = state.getIdentifier() else { return nil }
-		state = newState1
-		
-		guard let (c, newState2) = state.getChar(), c == ":" else { return nil }
-		state = newState2
-		
-		guard let (instructions, newState3) = try state.getInstructionList() else { return nil }
-		state = newState3
-		
-		let label = Label(identifier: name, instructions: instructions, options: options)
-		return (label, state)
-	}
-	
-	func getDefine() throws -> (value : (name : String, constant : Expression), state : State)? {
-		var state = ignoreWhitespace(allowNewline: true)
-		
-		guard let (identifier, newState1) = state.getIdentifier() else { return nil }
-		state = newState1
-		
-		guard let (c, newState2) = state.ignoreWhitespace().getChar(), c == "=" else { return nil }
-		state = newState2
-		
-		guard let (value, newState3) = try state.getExpression() else { throw ParseError(reason: .expectedExpression, state) }
-		state = newState3
-		
-		guard let newState4 = state.getSeparator() else { throw ParseError(reason: .expectedSeparator, state) }
-		state = newState4
-		
-		return ((identifier, value), state)
-	}
-	
-	func getProgram() throws -> (value : Program, state : State)? {
-		var state = ignoreWhitespace()
-		var labels : [Label] = []
-		var constants : [String: Expression] = [:]
-		
-		while true {
-			if let (label, newState) = try state.getLabel() {
-				labels.append(label)
-				state = newState
-			} else if let (define, newState) = try state.getDefine() {
-				guard !constants.keys.contains(define.name) else {
-					throw ParseError(reason: .constantRedefinition(constant: define.name), state)
-				}
-				
-				state = newState
-				constants[define.name] = define.constant
-			} else {
-				guard state.ignoreWhitespace(allowNewline: true).atEnd else {
-					throw ParseError(reason: .expectedLabelOrDefine, state)
-				}
-				break
-			}
-		}
-		
-		guard !labels.isEmpty else { return nil }
-		let program = Program(constants: constants, blocks: labels)
-		return (program, state)
-	}
-	
-	func getOptionList() throws -> (value : [String: Expression], state : State)? {
-		var state = ignoreWhitespace()
-		var options : [String: Expression] = [:]
-		
-		guard let (c1, newState1) = state.getChar(), c1 == "[" else { return nil }
-		state = newState1
-		
-		if let (option, newState2) = try state.getOption() {
-			state = newState2
-			options[option.key] = option.value
-		}
-		
-		guard let (c2, newState3) = state.getChar(), c2 == "]" else { return nil }
-		state = newState3
-		
-		return (options, state)
-	}
-	
-	func getOption() throws -> (value : (key : String, value : Expression), state : State)? {
-		var state = ignoreWhitespace()
-		
-		guard let (key, newState1) = state.getIdentifier() else { return nil }
-		state = newState1
-		
-		guard let (c, newState2) = state.getChar(), c == "(" else { return nil }
-		state = newState2
-		
-		let value : Expression
-		if let (number, newState3) = try state.getExpression() {
-			state = newState3
-			value = number
-		} else {
-			throw ParseError(reason: .expectedExpression, state)
-		}
-		
-		guard let (c2, newState4) = state.getChar(), c2 == ")" else {
-			throw ParseError(reason: .expectedMatch(match: ")"), state)
-		}
-		state = newState4
-		
-		return ((key, value), state)
-	}
-	
-	func getExpression() throws -> (value : Expression, state : State)? {
-		var state = ignoreWhitespace()
-		
-		let expression : Expression
-		
-		if let (constant, newState1) = state.getIdentifier() {
-			state = newState1
-			expression = Expression.constant(constant)
-		} else if let (string, newState1) = try state.getStringLiteral() {
-			state = newState1
-			expression = .string(string)
-		} else if let (number, newState1) = state.getNumber() {
-			state = newState1
-			expression = .value(number)
-		} else if let (c, newState1) = state.ignoreWhitespace().getChar(), c == "(" {
-			state = newState1
-			guard let (nextExpression, newState2) = try state.getExpression() else {
-				throw ParseError(reason: .expectedExpression, state)
-			}
-			state = newState2
-			guard let (c2, newState3) = state.ignoreWhitespace().getChar(), c2 == ")" else {
-				throw ParseError(reason: .expectedMatch(match: ")"), state)
-			}
-			state = newState3
-			expression = .parens(nextExpression)
-		} else if let (c, newState1) = state.ignoreWhitespace().getChar(), c == "[" {
-			state = newState1
-			guard let (nextExpression, newState2) = try state.getExpression() else {
-				throw ParseError(reason: .expectedExpression, state)
-			}
-			state = newState2
-			guard let (c2, newState3) = state.ignoreWhitespace().getChar(), c2 == "]" else {
-				throw ParseError(reason: .expectedMatch(match: ")"), state)
-			}
-			state = newState3
-			expression = .squareParens(nextExpression)
-		} else if let (op, newState1) = state.getExpressionOperator() {
-			state = newState1
-			guard let (nextExpression, newState2) = try state.getExpression() else {
-				throw ParseError(reason: .expectedExpression, state)
-			}
-			state = newState2
-			expression = .prefix(op, nextExpression)
-		} else {
-			return nil
-		}
-		
-		if let (operatorCharacter, newState2) = state.getExpressionOperator() {
-			state = newState2
-			
-			if let (nextExpression, newState3) = try state.getExpression() {
-				return (.binaryExpr(expression, operatorCharacter, nextExpression), newState3)
-			} else {
-				return (.suffix(expression, operatorCharacter),  newState2)
-			}
-		} else {
-			return (expression, state)
-		}
-	}
-	
-	func getExpressionOperator() -> (value : String, state : State)? {
-		let state = ignoreWhitespace()
-		
-		for op in ["+", "-", "*", "/", "%", "<<", ">>", "|", "&"] {
-			if let newState = state.match(string: op) {
-				return (op, newState)
-			}
-		}
-		
-		return nil
 	}
 }
