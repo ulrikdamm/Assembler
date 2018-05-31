@@ -31,6 +31,12 @@ class ExpressionTests : XCTestCase {
 	func assert(_ expression1 : Expression, reducesTo expression2 : Expression) {
 		XCTAssertEqual(expression1.reduced(), expression2.reduced(), "Wrong reduced result: `\(expression1.debugDescription)`, expected `\(expression1.debugDescription)`")
 	}
+	
+	func assert(_ expression1 : Expression, expandsTo expression2 : Expression, constants: [String: Expression]) {
+		let expander = ExpressionConstantExpansion(constants: constants)
+		XCTAssertNoThrow(try expander.expand(expression1))
+		XCTAssertEqual(try! expander.expand(expression1), expression2)
+	}
 }
 
 class ExpressionParsingTests : ExpressionTests {
@@ -59,4 +65,13 @@ class ExpressionReduceTests : ExpressionTests {
 	func testPositiveValuePrefix()	{ assert(.prefix("+", .value(123)), reducesTo: .value(123)) }
 	func testNegativeValuePrefix()	{ assert(.prefix("-", .value(123)), reducesTo: .value(-123)) }
 	func testNegativeExprPrefix()	{ assert(.prefix("-", .parens(.binaryExpr(.value(5), "+", .value(10)))), reducesTo: .value(-15)) }
+}
+
+class ExpressionExpandTest : ExpressionTests {
+	func testExpandNothing()           { assert(.value(0), expandsTo: .value(0), constants: [:]) }
+	func testExpandConstant()          { assert(.constant("a"), expandsTo: .value(123), constants: ["a": .value(123)]) }
+	func testExpandConstantRecursive() { assert(.constant("a"), expandsTo: .value(123), constants: ["a": .constant("b"), "b": .value(123)]) }
+	func testExpandUnknownConstant()   { assert(.constant("a"), expandsTo: .constant("a"), constants: [:]) }
+	func testExpandNestedConstant()   { assert(.binaryExpr(.value(5), "+", .constant("a")), expandsTo: .binaryExpr(.value(5), "+", .value(123)), constants: ["a": .value(123)]) }
+	func testExpandMultipleConstants()   { assert(.binaryExpr(.constant("a"), "+", .constant("b")), expandsTo: .binaryExpr(.value(123), "+", .value(456)), constants: ["a": .value(123), "b": .value(456)]) }
 }

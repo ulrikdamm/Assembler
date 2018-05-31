@@ -55,14 +55,14 @@ class IntegrationTests : XCTestCase {
 		XCTAssertEqual(Set(result).hashValue, -1986615222034599920)
 	}
 	
-	func test_performance() {
-		let sourceURL = Bundle(for: IntegrationTests.self).url(forResource: "movement", withExtension: "asm")!
-		let source = try! String(contentsOf: sourceURL)
-		
-		measure {
-			for _ in 0..<10 {
-				let _ = try! assembleProgram(source: [source], instructionSet: GameboyInstructionSet())
-			}
-		}
-	}
+	//func test_performance() {
+	//	let sourceURL = Bundle(for: IntegrationTests.self).url(forResource: "movement", withExtension: "asm")!
+	//	let source = try! String(contentsOf: sourceURL)
+	//	
+	//	measure {
+	//		for _ in 0..<10 {
+	//			let _ = try! assembleProgram(source: [source], instructionSet: GameboyInstructionSet())
+	//		}
+	//	}
+	//}
 }

@@ -12,7 +12,7 @@ public func formatBytes(bytes : [UInt8]) -> String {
 	var count = 0
 	for byte in bytes {
 		let byteString = String(byte, radix: 16)
-		output += (byteString.characters.count == 1 ? "0" : "") + byteString + " "
+		output += (byteString.count == 1 ? "0" : "") + byteString + " "
 		count += 1
 		
 		if count == 16 {

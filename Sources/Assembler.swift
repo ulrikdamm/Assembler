@@ -10,32 +10,6 @@ public protocol InstructionSet {
 	func assembleInstruction(instruction : Instruction) throws -> [Opcode]
 }
 
-struct ExpressionConstantExpansion {
-	let constants : [String: Expression]
-	
-	func expand(_ expression : Expression, constantStack : [String] = []) throws -> Expression {
-		let lowercased = expression.mapSubExpressions { (expr) -> Expression in
-			switch expr {
-			case .constant(let str): return .constant(str.lowercased())
-			case _: return expr
-			}
-		}
-		
-		let newExpression = try lowercased.mapSubExpressions { expr throws -> Expression in
-			if case .constant(let str) = expr, let value = self.constants[str] {
-				guard !constantStack.contains(str) else {
-					throw ErrorMessage("Cannot recursively expand constants")
-				}
-				return try expand(value, constantStack: constantStack + [str])
-			} else {
-				return expr
-			}
-		}
-		
-		return newExpression
-	}
-}
-
 struct Assembler {
 	let constants : [String: Expression]
 	let instructionSet : InstructionSet
@@ -52,28 +26,22 @@ struct Assembler {
 	}
 	
 	func assembleBlock(label : Label) throws -> Linker.Block {
-		let data = try label.instructions.map(instructionSet.assembleInstruction).joined()
+		let assembledInstructions = try label.instructions.map(instructionSet.assembleInstruction).joined()
 		
 		let constantExpander = ExpressionConstantExpansion(constants: constants)
-		let constantExpandedData = try data.map { opcode -> (Opcode) in
-			switch opcode {
-			case .expression(let expr, let resultType): return try .expression(constantExpander.expand(expr), resultType)
-			case _: return opcode
-			}
-		}
+		let expandedInstructions = try assembledInstructions.map { try $0.expandExpression(using: constantExpander) }
 		
-		let origin = try label.options["org"]
-			.map { expr in try constantExpander.expand(expr) }
-			.flatMap { expr -> Int? in
-				if case .value(let v) = expr { return v }
-				else { return nil }
-		}
+		let origin = try originOfLabel(label: label, constantExpander: constantExpander)
+		let block = Linker.Block(name: label.identifier.lowercased(), origin: origin, data: expandedInstructions)
 		
-		let block = Linker.Block(
-			name: label.identifier.lowercased(),
-			origin: origin,
-			data: constantExpandedData
-		)
 		return block
+	}
+	
+	func originOfLabel(label : Label, constantExpander : ExpressionConstantExpansion) throws -> Int? {
+		guard let declaredOrigin = label.options["org"] else { return nil }
+		let expandedOrigin = try constantExpander.expand(declaredOrigin)
+		
+		guard case .value(let origin) = expandedOrigin else { throw ErrorMessage("Invalid value `\(expandedOrigin)` for block origin") }
+		return origin
 	}
 }

@@ -6,7 +6,7 @@
 //  Copyright © 2016 Ufd.dk. All rights reserved.
 //
 
-public struct Instruction {
+public struct Instruction : Equatable {
 	let mnemonic : String
 	let operands : [Expression]
 	let line : Int
@@ -50,6 +50,12 @@ extension Character {
 	
 	var isWhitespace : Bool {
 		return (self == " " || self == "\t")
+	}
+}
+
+extension CountableRange where Bound : Numeric {
+	func stride(by offset : Bound) -> CountableRange {
+		return (lowerBound + offset) ..< (upperBound + offset)
 	}
 }
 

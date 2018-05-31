@@ -6,7 +6,7 @@
 //  Copyright © 2016 Ufd.dk. All rights reserved.
 //
 
-public indirect enum Expression {
+public indirect enum Expression : Equatable {
 	case value(Int)
 	case string(String)
 	case constant(String)
@@ -101,17 +101,43 @@ extension Expression : CustomStringConvertible, CustomDebugStringConvertible {
 	}
 }
 
-extension Expression : Equatable {
-	public static func ==(lhs : Expression, rhs : Expression) -> Bool {
-		switch (lhs, rhs) {
-		case (.value(let v1), .value(let v2)) where v1 == v2: return true
-		case (.string(let str1), .string(let str2)) where str1 == str2: return true
-		case (.constant(let str1), .constant(let str2)) where str1 == str2: return true
-		case (.prefix(let str1, let expr1), .prefix(let str2, let expr2)) where str1 == str2 && expr1 == expr2: return true
-		case (.suffix(let expr1, let str1), .suffix(let expr2, let str2)) where str1 == str2 && expr1 == expr2: return true
-		case (.parens(let expr1), .parens(let expr2)) where expr1 == expr2: return true
-		case (.binaryExpr(let left1, let str1, let right1), .binaryExpr(let left2, let str2, let right2)) where left1 == left2 && str1 == str2 && right1 == right2: return true
-		case _: return false
+//extension Expression : Equatable {
+//	public static func ==(lhs : Expression, rhs : Expression) -> Bool {
+//		switch (lhs, rhs) {
+//		case (.value(let v1), .value(let v2)) where v1 == v2: return true
+//		case (.string(let str1), .string(let str2)) where str1 == str2: return true
+//		case (.constant(let str1), .constant(let str2)) where str1 == str2: return true
+//		case (.prefix(let str1, let expr1), .prefix(let str2, let expr2)) where str1 == str2 && expr1 == expr2: return true
+//		case (.suffix(let expr1, let str1), .suffix(let expr2, let str2)) where str1 == str2 && expr1 == expr2: return true
+//		case (.parens(let expr1), .parens(let expr2)) where expr1 == expr2: return true
+//		case (.binaryExpr(let left1, let str1, let right1), .binaryExpr(let left2, let str2, let right2)) where left1 == left2 && str1 == str2 && right1 == right2: return true
+//		case _: return false
+//		}
+//	}
+//}
+
+struct ExpressionConstantExpansion {
+	let constants : [String: Expression]
+	
+	func expand(_ expression : Expression, constantStack : [String] = []) throws -> Expression {
+		let lowercased = expression.mapSubExpressions { (expr) -> Expression in
+			switch expr {
+			case .constant(let str): return .constant(str.lowercased())
+			case _: return expr
+			}
 		}
+		
+		let newExpression = try lowercased.mapSubExpressions { expr throws -> Expression in
+			if case .constant(let str) = expr, let value = constants[str] {
+				guard !constantStack.contains(str) else {
+					throw ErrorMessage("Cannot recursively expand constants")
+				}
+				return try expand(value, constantStack: constantStack + [str])
+			} else {
+				return expr
+			}
+		}
+		
+		return newExpression
 	}
 }

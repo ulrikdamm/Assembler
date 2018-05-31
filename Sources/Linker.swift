@@ -37,6 +37,16 @@ public enum Opcode : CustomStringConvertible {
 		let n16 = try UInt16.fromInt(value: value)
 		return [.byte(n16.lsb), .byte(n16.msb)]
 	}
+	
+	func expandExpression(using constantExpander : ExpressionConstantExpansion) throws -> Opcode {
+		switch self {
+		case .expression(let expr, let resultType):
+			let expanded = try constantExpander.expand(expr)
+			return .expression(expanded, resultType)
+		case _:
+			return self
+		}
+	}
 }
 
 extension Opcode : Equatable {

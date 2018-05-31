@@ -69,8 +69,9 @@ struct State {
 		
 		while next == "#" {
 			while true {
-				nextLocation = source.index(after: nextLocation)
 				guard let c = getAt(location: nextLocation) else { return nil }
+				nextLocation = source.index(after: nextLocation)
+				
 				if c == "\n" {
 					next = c
 					break
@@ -199,7 +200,7 @@ struct State {
 	
 	func match(string : String) -> State? {
 		var state = self
-		for character in string.characters {
+		for character in string {
 			guard let (c, newState) = state.getChar(), character == c else { return nil }
 			state = newState
 		}

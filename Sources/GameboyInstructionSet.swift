@@ -120,7 +120,7 @@ public struct GameboyInstructionSet : InstructionSet {
 		case .constant("c")?: opcode = 0x38
 		case .constant("nc")?: opcode = 0x30
 		case nil: opcode = 0x18
-		case _: throw ErrorMessage("Invalid condition ’\(condition)‘")
+		case _: throw ErrorMessage("Invalid condition ’\(String(describing: condition))‘")
 		}
 		
 		return [.byte(opcode), targetCode]
