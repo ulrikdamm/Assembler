@@ -118,62 +118,62 @@ func spriteSheetBlock(fileLocation : URL, memoryLocation : UInt16?, instructionS
 	return try assembler.assembleBlock(label: Label(identifier: "sprites", instructions: spritesInstruction, options: ["org": .value(Int(origin))]))
 }
 
-func main() {
-	do {
-		let rawArguments = Array(CommandLine.arguments.dropFirst())
-		guard rawArguments.count > 0 else {
-			print("Usage: input/file.asm\n"
-				+ "\t[-o output/file.asm]\n"
-				+ "\t[--output-symbols symbols/file.symbols]\n"
-				+ "\t[--target gameboy | intel8080]")
-			return
+func main() throws {
+	let rawArguments = Array(CommandLine.arguments.dropFirst())
+	guard rawArguments.count > 0 else {
+		print("Usage: input/file.asm\n"
+			+ "\t[-o output/file.asm]\n"
+			+ "\t[--output-symbols symbols/file.symbols]\n"
+			+ "\t[--target gameboy | intel8080]")
+		return
+	}
+	
+	let arguments = try Arguments(fromRaw: rawArguments)
+	let source = try String(contentsOf: arguments.inputFile)
+	
+	guard let program = try AssemblyParser.getProgram(State(source: source))?.value else { throw ErrorMessage("Couldn't parse source") }
+	
+	let instructionSet : InstructionSet
+	
+	switch (arguments.systemType ?? "gameboy") {
+	case "intel8080":
+		instructionSet = Intel8080InstructionSet()
+		print("*** Warning: Assembling for Intel 8080 is still experimental ***")
+	case "gameboy": instructionSet = GameboyInstructionSet()
+	case let target: throw ErrorMessage("Unknown system target `\(target)` (Supported targets: gameboy, intel8080)")
+	}
+	
+	let assembler = Assembler(instructionSet: instructionSet, constants: program.constants)
+	var blocks = try program.blocks.map { block in try assembler.assembleBlock(label: block) }
+	
+	if let spriteSheet = arguments.spriteSheet {
+		let spritesBlock = try spriteSheetBlock(fileLocation: spriteSheet, memoryLocation: arguments.spriteSheetMemoryLocation, instructionSet: instructionSet)
+		blocks.append(spritesBlock)
+	}
+	
+	let linker = Linker(blocks: blocks)
+	let bytes = try linker.link()
+	
+	let data = Data(bytes: bytes)
+	try data.write(to: arguments.outputFile)
+	
+	if let symbolsFile = arguments.symbolsFile {
+		let symbols = linker.allocations.sorted { a, b in a.start < b.start }.map { allocation -> String in
+			let start = String(allocation.start, radix: 16)
+			let block = linker.blocks[allocation.blockId]
+			return "$\(start): \(block.name)"
 		}
 		
-		let arguments = try Arguments(fromRaw: rawArguments)
-		let source = try String(contentsOf: arguments.inputFile)
-		
-		guard let program = try AssemblyParser.getProgram(State(source: source))?.value else { throw ErrorMessage("Couldn't parse source") }
-		
-		let instructionSet : InstructionSet
-		
-		switch (arguments.systemType ?? "gameboy") {
-		case "intel8080":
-			instructionSet = Intel8080InstructionSet()
-			print("*** Warning: Assembling for Intel 8080 is still experimental ***")
-		case "gameboy": instructionSet = GameboyInstructionSet()
-		case let target: throw ErrorMessage("Unknown system target `\(target)` (Supported targets: gameboy, intel8080)")
-		}
-		
-		let assembler = Assembler(instructionSet: instructionSet, constants: program.constants)
-		var blocks = try program.blocks.map { block in try assembler.assembleBlock(label: block) }
-		
-		if let spriteSheet = arguments.spriteSheet {
-			let spritesBlock = try spriteSheetBlock(fileLocation: spriteSheet, memoryLocation: arguments.spriteSheetMemoryLocation, instructionSet: instructionSet)
-			blocks.append(spritesBlock)
-		}
-		
-		let linker = Linker(blocks: blocks)
-		let bytes = try linker.link()
-		
-		let data = Data(bytes: bytes)
-		try data.write(to: arguments.outputFile)
-		
-		if let symbolsFile = arguments.symbolsFile {
-			let symbols = linker.allocations.sorted { a, b in a.start < b.start }.map { allocation -> String in
-				let start = String(allocation.start, radix: 16)
-				let block = linker.blocks[allocation.blockId]
-				return "$\(start): \(block.name)"
-			}
-			
-			try symbols.joined(separator: "\n").write(to: symbolsFile, atomically: true, encoding: String.Encoding.utf8)
-		}
-	} catch let error as ErrorMessage {
-		print(error.message)
-	} catch let error as State.ParseError {
-		print(error.localizedDescription)
-	} catch let error {
-		print(error.localizedDescription)
+		try symbols.joined(separator: "\n").write(to: symbolsFile, atomically: true, encoding: String.Encoding.utf8)
 	}
 }
 
-main()
+do {
+	try main()
+} catch let error as ErrorMessage {
+	print("Assembler error: \(error.message)")
+} catch let error as State.ParseError {
+	print("Parsing error: \(error.localizedDescription)")
+} catch let error {
+	print("Error: \(error.localizedDescription)")
+}
