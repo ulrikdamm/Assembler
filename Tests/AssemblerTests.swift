@@ -9,12 +9,6 @@
 import XCTest
 @testable import Assembler
 
-class DisassemblerTests : XCTestCase {
-	func test_disassembler() {
-		try! Disassembler().disassemble(file: URL(fileURLWithPath: "/Users/ulrikdamm/Desktop/test.gb"))
-	}
-}
-
 class GameboyInstructionSetTests : XCTestCase {
 	let instructionSet = GameboyInstructionSet()
 	

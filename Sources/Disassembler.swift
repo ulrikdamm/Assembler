@@ -691,7 +691,6 @@ class Disassembler {
 		case 0xff: return Instruction("set", .value(7), .constant("A"))
 			
 		case _: fatalError("Unhandled opcode CB \(byte)")
-			
 		}
 	}
 }
