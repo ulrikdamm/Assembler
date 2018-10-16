@@ -12,6 +12,14 @@ public struct Instruction : Equatable {
 	let line : Int
 }
 
+extension Instruction {
+	init(_ mnemonic : String, _ operands : Expression...) {
+		self.mnemonic = mnemonic
+		self.operands = operands
+		self.line = 0
+	}
+}
+
 extension Instruction : CustomStringConvertible {
 	public var description: String {
 		let ops = operands.map { $0.description }.joined(separator: ", ")
@@ -27,7 +35,7 @@ struct Label {
 
 extension Label : CustomStringConvertible {
 	var description : String {
-		return "\(identifier): " + instructions.map { $0.description }.joined(separator: "; ")
+		return (["\(identifier): "] + instructions.map { "\t" + $0.description }).joined(separator: "\n")
 	}
 }
 
@@ -54,7 +62,7 @@ extension Character {
 }
 
 extension CountableRange where Bound : Numeric {
-	func stride(by offset : Bound) -> CountableRange {
+	func stride(by offset : Bound) -> CountableRange<Bound> {
 		return (lowerBound + offset) ..< (upperBound + offset)
 	}
 }

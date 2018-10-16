@@ -139,3 +139,13 @@ extension Instruction {
 		return operands.map { expr in expr.reduced() }
 	}
 }
+
+extension Array {
+	func map<U>(_ transform : KeyPath<Element, U>) -> [U] {
+		return map { $0[keyPath: transform] }
+	}
+}
+
+extension Array where Element : Numeric {
+	func sum() -> Element { return reduce(0, +) }
+}

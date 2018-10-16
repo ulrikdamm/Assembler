@@ -65,12 +65,32 @@ struct Linker {
 		let name : String
 		let origin : Int?
 		let data : [Opcode]
+		
+		var length : Int { return data.map(\.byteLength).sum() }
 	}
 	
 	struct Allocation {
 		let start : Int
 		let length : Int
 		let blockId : Int
+		
+		var end : Int { return start + length }
+	}
+	
+	struct Buffer {
+		var data : [UInt8]
+		var index : Int = 0
+		
+		init(size : Int) {
+			data = [UInt8](repeating: 0, count: size)
+		}
+		
+		mutating func append(_ values : UInt8...) {
+			for value in values {
+				data[index] = value
+				index += 1
+			}
+		}
 	}
 	
 	let blocks : [Block]
@@ -82,92 +102,68 @@ struct Linker {
 	}
 	
 	func link() throws -> [UInt8] {
-		let size = calculateBinarySize()
-		var data = Array<UInt8>(repeating: 0, count: size)
+		var buffer = Buffer(size: calculateBinarySize())
 		
 		for allocation in allocations {
-			var offset = 0
-			for byte in blocks[allocation.blockId].data {
-				switch byte {
-				case .byte(let n):
-					data[allocation.start + offset] = n
-					offset += 1
-				case .word(let n):
-					data[allocation.start + offset] = n.lsb
-					data[allocation.start + offset + 1] = n.msb
-					offset += 2
-//				case .label(let name, relative: false):
-//					if let start = blockStart(name: name) {
-//						let n16 = try UInt16.fromInt(value: start)
-//						data[allocation.start + offset] = n16.lsb
-//						data[allocation.start + offset + 1] = n16.msb
-//						offset += 2
-//					} else {
-//						throw ErrorMessage("Unknown label ’\(name)‘")
-//					}
-//				case .expression(let expr, .int8relative):
-//					let mapped = try expr.mapSubExpressions(map: replaceExpressionLabelValue)
-//					let reduced = mapped.reduced()
-//					guard case .value(let value) = reduced else {
-//						throw ErrorMessage("Invalid value `\(reduced)`")
-//					}
-//					guard let start = blockStart(name: labelName) else { throw ErrorMessage("Unknown label `\(labelName)`") }
-//					
-//					let n16 = try UInt16.fromInt(value: start)
-//					let current = allocation.start + offset + 1
-//					let difference = Int(n16) - Int(current)
-//					
-//					do {
-//						let value = try Int8.fromInt(value: difference)
-//						data[allocation.start + offset] = UInt8(bitPattern: value)
-//						offset += 1
-//					} catch {
-//						throw ErrorMessage("Label out of range for relative jump (\(difference) bytes away)")
-//					}
-				case .expression(let expr, let type):
-					let mapped = try expr.mapSubExpressions(map: replaceExpressionLabelValue)
-					let reduced = mapped.reduced()
-					guard case .value(let value) = reduced else {
-						throw ErrorMessage("Invalid value `\(reduced)`")
-					}
-					
-					switch type {
-					case .uint8:
-						data[allocation.start + offset] = try UInt8.fromInt(value: value)
-						offset += 1
-					case .uint16:
-						let n16 = try UInt16.fromInt(value: value)
-						data[allocation.start + offset] = n16.lsb
-						data[allocation.start + offset + 1] = n16.msb
-						offset += 2
-					case .int8relative:
-						let n16 = try UInt16.fromInt(value: value)
-						let current = allocation.start + offset + 1
-						let difference = Int(n16) - Int(current)
-						
-						do {
-							let value = try Int8.fromInt(value: difference)
-							data[allocation.start + offset] = UInt8(bitPattern: value)
-							offset += 1
-						} catch {
-							throw ErrorMessage("Label out of range for relative jump (\(difference) bytes away)")
-						}
-					}
-				}	
-			}
+			try copyAllocation(allocation, to: &buffer)
 		}
 		
-		return data
+		return buffer.data
+	}
+	
+	func copyAllocation(_ allocation : Allocation, to buffer : inout Buffer) throws {
+		buffer.index = allocation.start
+		
+		for byte in blocks[allocation.blockId].data {
+			switch byte {
+			case .byte(let n): buffer.append(n)
+			case .word(let n): buffer.append(n.lsb, n.msb)
+			case .expression(let expr, let type): try appendExpression(expr, of: type, to: &buffer)
+			}	
+		}
+	}
+	
+	func appendExpression(_ expression : Expression, of type : Opcode.ResultType, to buffer : inout Buffer) throws {
+		let value = try finalValue(of: expression)
+		
+		switch type {
+		case .uint8:
+			buffer.append(try UInt8.fromInt(value: value))
+		case .uint16:
+			let n16 = try UInt16.fromInt(value: value)
+			buffer.append(n16.lsb, n16.msb)
+		case .int8relative:
+			let n16 = try UInt16.fromInt(value: value)
+			let current = buffer.index + 1
+			let difference = Int(n16) - Int(current)
+			
+			do {
+				let value = try Int8.fromInt(value: difference)
+				buffer.append(UInt8(bitPattern: value))
+			} catch {
+				throw ErrorMessage("Label out of range for relative jump (\(difference) bytes away)")
+			}
+		}
+	}
+	
+	func finalValue(of expression : Expression) throws -> Int {
+		let mapped = try expression.mapSubExpressions(map: replaceExpressionLabelValue)
+		let reduced = mapped.reduced()
+		
+		guard case .value(let value) = reduced else {
+			throw ErrorMessage("Invalid value `\(reduced)`")
+		}
+		
+		return value
 	}
 	
 	func replaceExpressionLabelValue(expression : Expression) throws -> Expression {
 		switch expression {
 		case .constant(let name):
-			guard let location = blockStart(name: name) else {
-				throw ErrorMessage("Unknown label `\(name)`")
-			}
+			guard let location = blockStart(name: name) else { throw ErrorMessage("Unknown label `\(name)`") }
 			return .value(location)
-		case _: return expression
+		case _:
+			return expression
 		}
 	}
 	
@@ -175,43 +171,19 @@ struct Linker {
 		var allocations : [Allocation] = []
 		
 		for (blockId, block) in blocks.enumerated() {
-			let start = block.origin
-				?? allocations.last.map { $0.start + $0.length }
-				?? 0
-			let length = blockLength(block: block)
-			let allocation = Allocation(start: start, length: length, blockId: blockId)
+			let start = block.origin ?? allocations.last?.end ?? 0
+			let allocation = Allocation(start: start, length: block.length, blockId: blockId)
 			allocations.append(allocation)
 		}
 		
 		return allocations
 	}
 	
-	static func blockLength(block : Block) -> Int {
-		return block.data.map { $0.byteLength }.reduce(0, +)
-	}
+	func calculateBinarySize() -> Int { return allocations.map(\.end).max() ?? 0 }
 	
-	func calculateBinarySize() -> Int {
-		var furthestEnd = 0
-		
-		for allocation in allocations {
-			let end = allocation.start + allocation.length
-			
-			if end > furthestEnd {
-				furthestEnd = end
-			}
-		}
-		
-		return furthestEnd
-	}
+	func blockForAllocation(_ allocation : Allocation) -> Block { return blocks[allocation.blockId] }
 	
 	func blockStart(name : String) -> Int? {
-		for allocation in allocations {
-			let block = blocks[allocation.blockId]
-			if block.name == name {
-				return allocation.start
-			}
-		}
-		
-		return nil
+		return allocations.first { blockForAllocation($0).name == name }?.start
 	}
 }

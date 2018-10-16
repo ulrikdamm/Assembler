@@ -124,7 +124,9 @@ func main() throws {
 		print("Usage: input/file.asm\n"
 			+ "\t[-o output/file.asm]\n"
 			+ "\t[--output-symbols symbols/file.symbols]\n"
-			+ "\t[--target gameboy | intel8080]")
+			+ "\t[--target gameboy | intel8080]\n"
+			+ "\t[--sprite-sheet resources/spritesheet.png]\n"
+			+ "\t[--sprites-memory-location 4000 (hex)]")
 		return
 	}
 	

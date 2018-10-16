@@ -51,10 +51,10 @@ class LinkerTests : XCTestCase {
 	}
 	
 	func testBlockLength() {
-		XCTAssertEqual(Linker.blockLength(block: block1), 3)
-		XCTAssertEqual(Linker.blockLength(block: block2), 2)
-		XCTAssertEqual(Linker.blockLength(block: block3), 2)
-		XCTAssertEqual(Linker.blockLength(block: block4), 3)
+		XCTAssertEqual(block1.length, 3)
+		XCTAssertEqual(block2.length, 2)
+		XCTAssertEqual(block3.length, 2)
+		XCTAssertEqual(block4.length, 3)
 	}
 	
 	func testCalculateBinarySize() {

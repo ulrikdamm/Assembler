@@ -9,6 +9,12 @@
 import XCTest
 @testable import Assembler
 
+class DisassemblerTests : XCTestCase {
+	func test_disassembler() {
+		try! Disassembler().disassemble(file: URL(fileURLWithPath: "/Users/ulrikdamm/Desktop/test.gb"))
+	}
+}
+
 class GameboyInstructionSetTests : XCTestCase {
 	let instructionSet = GameboyInstructionSet()
 	
@@ -404,6 +410,10 @@ class GameboyJumpTests : GameboyInstructionSetTests {
 	func test_jr_nz_n_neg()	{ assert("jr nz, -5",			[0x20, 0xfb]) }
 	func test_jr_c_n_neg()	{ assert("jr c, -5",			[0x38, 0xfb]) }
 	func test_jr_nc_n_neg()	{ assert("jr nc, -5",			[0x30, 0xfb]) }
+}
+
+class GameboyFailTests : GameboyInstructionSetTests {
+	func test_ld_b_hlp()    { /* ld b, [hl+] */ }
 }
 
 class GameboyExpressionOpcodeTests : GameboyInstructionSetTests {

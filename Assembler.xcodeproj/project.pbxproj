@@ -30,6 +30,8 @@
 		FF451FF61D843A7300E54BD3 /* Parser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD71D84389800E54BD3 /* Parser.swift */; };
 		FF451FF71D843A7300E54BD3 /* Util.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF451FD81D84389800E54BD3 /* Util.swift */; };
 		FF7AE04D1F2A3D450065731B /* AssemblyParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFAD934C1DB408F300686426 /* AssemblyParser.swift */; };
+		FF7DFE2420EFA1E100E90C02 /* Disassembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF7DFE2320EFA1E100E90C02 /* Disassembler.swift */; };
+		FF7DFE2520EFD71300E90C02 /* Disassembler.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF7DFE2320EFA1E100E90C02 /* Disassembler.swift */; };
 		FF873E8C20BDA277004D82F2 /* SpriteReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF873E8B20BDA277004D82F2 /* SpriteReaderTests.swift */; };
 		FF873E8E20BDA676004D82F2 /* singleSprite.png in Resources */ = {isa = PBXBuildFile; fileRef = FF873E8D20BDA676004D82F2 /* singleSprite.png */; };
 		FF873E9020BDB52E004D82F2 /* tiledSprite.png in Resources */ = {isa = PBXBuildFile; fileRef = FF873E8F20BDB52E004D82F2 /* tiledSprite.png */; };
@@ -97,6 +99,7 @@
 		FF451FE51D8438A500E54BD3 /* AssemblerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssemblerTests.swift; sourceTree = "<group>"; };
 		FF451FEB1D843A6A00E54BD3 /* AssemblerCLI */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = AssemblerCLI; sourceTree = BUILT_PRODUCTS_DIR; };
 		FF451FED1D843A6A00E54BD3 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		FF7DFE2320EFA1E100E90C02 /* Disassembler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Disassembler.swift; sourceTree = "<group>"; };
 		FF873E8B20BDA277004D82F2 /* SpriteReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteReaderTests.swift; sourceTree = "<group>"; };
 		FF873E8D20BDA676004D82F2 /* singleSprite.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = singleSprite.png; sourceTree = "<group>"; };
 		FF873E8F20BDB52E004D82F2 /* tiledSprite.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tiledSprite.png; sourceTree = "<group>"; };
@@ -177,6 +180,7 @@
 				FF077B2D1D9ADD0C0088F749 /* GameboyInstructionSet.swift */,
 				FF077B2F1D9BDB9D0088F749 /* Intel8080InstructionSet.swift */,
 				FFF9C01820B8543000D1FB8A /* SpriteReader.swift */,
+				FF7DFE2320EFA1E100E90C02 /* Disassembler.swift */,
 				FF451FBD1D84388400E54BD3 /* Info.plist */,
 			);
 			name = Assembler;
@@ -287,12 +291,12 @@
 				TargetAttributes = {
 					FF451FB81D84388400E54BD3 = {
 						CreatedOnToolsVersion = 8.0;
-						LastSwiftMigration = 0900;
+						LastSwiftMigration = "";
 						ProvisioningStyle = Automatic;
 					};
 					FF451FC11D84388400E54BD3 = {
 						CreatedOnToolsVersion = 8.0;
-						LastSwiftMigration = 0900;
+						LastSwiftMigration = "";
 						ProvisioningStyle = Automatic;
 					};
 					FF451FEA1D843A6A00E54BD3 = {
@@ -352,6 +356,7 @@
 				FFF9C01920B8543000D1FB8A /* SpriteReader.swift in Sources */,
 				FF451FD91D84389800E54BD3 /* Assembler.swift in Sources */,
 				FF451FE11D84389800E54BD3 /* Parser.swift in Sources */,
+				FF7DFE2420EFA1E100E90C02 /* Disassembler.swift in Sources */,
 				FFAD934D1DB408F300686426 /* AssemblyParser.swift in Sources */,
 				FF451FDB1D84389800E54BD3 /* Data.swift in Sources */,
 				FF451FDD1D84389800E54BD3 /* Expression.swift in Sources */,
@@ -387,6 +392,7 @@
 				FFF9C01A20B8543000D1FB8A /* SpriteReader.swift in Sources */,
 				FFC77FC71D9C16F300BF3519 /* Intel8080InstructionSet.swift in Sources */,
 				FF451FEE1D843A6A00E54BD3 /* main.swift in Sources */,
+				FF7DFE2520EFD71300E90C02 /* Disassembler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -533,8 +539,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -555,8 +560,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = dk.ufd.Assembler;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
@@ -569,8 +573,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = dk.ufd.AssemblerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -583,8 +586,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = dk.ufd.AssemblerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
@@ -594,7 +596,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/Sources/Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -604,7 +606,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/Sources/Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};

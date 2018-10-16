@@ -81,7 +81,7 @@ class SpriteReader {
 		for offsetY in 0 ..< 8 {
 			for offsetX in 0 ..< 8 {
 				let pixel = bitmap.colorAt(x: x + offsetX, y: y + offsetY)!
-				pixels.append(3 - pixelValueForColor(pixel))
+				pixels.append(3 - pixelValueForColor(pixel.usingColorSpace(.deviceRGB)!))
 			}
 		}
 		
