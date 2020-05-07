@@ -111,10 +111,7 @@ extension Instruction {
 			throw ErrorMessage("Missing operand")
 		}
 		
-		return (
-			expression: operands[0].reduced(),
-			expression: operands[1].reduced()
-		)
+		return (operands[0].reduced(), operands[1].reduced())
 	}
 	
 	func getOperandRaw(index : Int) throws -> Expression {
