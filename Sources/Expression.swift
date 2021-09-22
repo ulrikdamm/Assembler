@@ -21,6 +21,8 @@ extension Expression {
 	func reduced() -> Expression {
 		switch self {
 		case .value(let v): return .value(v)
+        case .string(let str) where str.unicodeScalars.count == 1 && str.unicodeScalars.first?.isASCII ?? false:
+            return .value(Int(Character(str.unicodeScalars.first!).asciiValue!))
 		case .string(let str): return .string(str)
 		case .constant(let str): return .constant(str)
 		case .prefix("+", let expr):
@@ -54,6 +56,10 @@ extension Expression {
 				}
 			case (.string(let leftString), "+", .string(let rightString)):
 				return .string(leftString + rightString)
+            case (.string(let leftString), "+", .value(let ascii)):
+                return .string(leftString + String(Character(Unicode.Scalar(ascii)!)))
+            case (.value(let ascii), "+", .string(let rightString)):
+                return .string(String(Character(Unicode.Scalar(ascii)!)) + rightString)
 			case (let leftReduced, _, let rightReduced):
 				return .binaryExpr(leftReduced, op, rightReduced)
 			}

@@ -116,6 +116,9 @@ class GameboyLoadTests : GameboyInstructionSetTests {
 	func test_ld_hl_spn1()	{ assert("ld hl, sp + 20",		[0xf8, 0x14]) }
 	func test_ld_hl_spn2()	{ assert("ld hl, sp - 20",		[0xf8, 0xec]) }
 	func test_ld_nn_sp()	{ assert("ld 0x1234, sp",		[0x08, 0x34, 0x12]) }
+    
+    func test_ld_a_expr()   { assert("ld a, 0x10 + 0x05",   [0x3e, 0x15]) }
+    func test_ld_a_char()   { assert("ld a, \"a\"",         [0x3e, 0x61]) }
 }
 
 class GameboyStackTests : GameboyInstructionSetTests {

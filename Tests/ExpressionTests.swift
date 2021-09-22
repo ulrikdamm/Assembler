@@ -29,7 +29,7 @@ class ExpressionTests : XCTestCase {
 	}
 	
 	func assert(_ expression1 : Expression, reducesTo expression2 : Expression) {
-		XCTAssertEqual(expression1.reduced(), expression2.reduced(), "Wrong reduced result: `\(expression1.debugDescription)`, expected `\(expression1.debugDescription)`")
+		XCTAssertEqual(expression1.reduced(), expression2.reduced(), "Wrong reduced result: `\(expression1.debugDescription)`, expected `\(expression2.debugDescription)`")
 	}
 	
 	func assert(_ expression1 : Expression, expandsTo expression2 : Expression, constants: [String: Expression]) {
@@ -65,6 +65,10 @@ class ExpressionReduceTests : ExpressionTests {
 	func testPositiveValuePrefix()	{ assert(.prefix("+", .value(123)), reducesTo: .value(123)) }
 	func testNegativeValuePrefix()	{ assert(.prefix("-", .value(123)), reducesTo: .value(-123)) }
 	func testNegativeExprPrefix()	{ assert(.prefix("-", .parens(.binaryExpr(.value(5), "+", .value(10)))), reducesTo: .value(-15)) }
+    func testASCIIString()          { assert(.string("a"), reducesTo: .value(97)) }
+    func testInvalidASCIIString()   { assert(.string("aa"), reducesTo: .string("aa")) }
+    func testAddStringAndASCII()    { assert(.binaryExpr(.string("ab"), "+", .value(99)), reducesTo: .string("abc")) }
+    func testAddStringAndASCIIStr() { assert(.binaryExpr(.string("ab"), "+", .string("c")), reducesTo: .string("abc")) }
 }
 
 class ExpressionExpandTest : ExpressionTests {
