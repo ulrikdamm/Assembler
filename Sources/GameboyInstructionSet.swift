@@ -184,6 +184,11 @@ public struct GameboyInstructionSet : InstructionSet {
 		}
 		return [.byte(opcode)]
 	}
+    
+    func assembleDw(_ instruction : Instruction) throws -> [Opcode] {
+        let operands = try instruction.getAtLeastOneOperand()
+        return try operands.map { op in try op.uint16Opcode() }.reduce([], +)
+    }
 	
 	func assembleDb(_ instruction : Instruction) throws -> [Opcode] {
 		let operands = try instruction.getAtLeastOneOperand()
@@ -324,6 +329,7 @@ public struct GameboyInstructionSet : InstructionSet {
 			case "sbc": return try assembleArithmeticOperation(instruction, mask: 0x98, directOpcode: 0xde)
 				
 			case "db": return try assembleDb(instruction)
+            case "dw": return try assembleDw(instruction)
 			case "dec": return try assembleDec(instruction)
 			case "inc": return try assembleInc(instruction)
 			case "ld": return try assembleLd(instruction)

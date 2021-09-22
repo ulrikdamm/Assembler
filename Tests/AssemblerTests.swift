@@ -432,3 +432,13 @@ class GameboyExpressionOpcodeTests : GameboyInstructionSetTests {
 		assert("ld a, label1 - label2", [.byte(0x3e), .expression(result, .uint8)])
 	}
 }
+
+class GameboyByteDefinesTests : GameboyInstructionSetTests {
+    func test_db_value()    { assert("db 1",                [0x01]) }
+    func test_db_expr()     { assert("db 2 + 5",            [0x07]) }
+    func test_db_ascii()    { assert("db \"a\"",            [0x61]) }
+    func test_db_string()   { assert("db \"abc\"",          [0x61, 0x62, 0x63]) }
+    func test_dw_value()    { assert("dw 0x1234",           [0x34, 0x12]) }
+    func test_dw_label()    { assert("dw label",            [.expression(.constant("label"), .uint16)]) }
+    func test_dw_labels()   { assert("dw label1, label2",   [.expression(.constant("label1"), .uint16), .expression(.constant("label2"), .uint16)]) }
+}
