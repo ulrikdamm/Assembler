@@ -29,6 +29,7 @@ extension Instruction : CustomStringConvertible {
 
 struct Label {
 	let identifier : String
+    let parent : String?
 	let instructions : [Instruction]
 	let options : [String: Expression]
 }

@@ -78,7 +78,7 @@ struct AssemblyParser {
 		return (instructions, state)
 	}
 	
-	static func getLabel(_ initialState : State) throws -> (value : Label, state : State)? {
+    static func getLabel(_ initialState : State, parentLabel : String?) throws -> (value : Label, state : State)? {
 		var state = initialState.ignoreWhitespace(allowNewline: true)
 		let options : [String: Expression]
 		
@@ -90,6 +90,13 @@ struct AssemblyParser {
 		}
 		
 		state = state.ignoreWhitespace(allowNewline: true)
+        
+        var isLocal = false
+        if let (dot, newState5) = state.getChar(), dot == "." {
+            guard parentLabel != nil else { throw ErrorMessage("Can't make a local label without a parent") }
+            state = newState5
+            isLocal = true
+        }
 		
 		guard let (name, newState1) = state.getIdentifier() else { return nil }
 		state = newState1
@@ -100,7 +107,7 @@ struct AssemblyParser {
 		guard let (instructions, newState3) = try getInstructionList(state) else { return nil }
 		state = newState3
 		
-		let label = Label(identifier: name, instructions: instructions, options: options)
+        let label = Label(identifier: name, parent: (isLocal ? parentLabel : nil), instructions: instructions, options: options)
 		return (label, state)
 	}
 	
@@ -128,7 +135,9 @@ struct AssemblyParser {
 		var constants : [String: Expression] = [:]
 		
 		while true {
-			if let (label, newState) = try getLabel(state) {
+            let parentLabel = labels.last(where: { label in label.parent == nil })
+            
+            if let (label, newState) = try getLabel(state, parentLabel: parentLabel?.identifier) {
 				labels.append(label)
 				state = newState
 			} else if let (define, newState) = try getDefine(state) {

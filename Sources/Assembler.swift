@@ -29,17 +29,17 @@ struct Assembler {
 		let assembledInstructions = try label.instructions.map(instructionSet.assembleInstruction).joined()
 		
 		let constantExpander = ExpressionConstantExpansion(constants: constants)
-		let expandedInstructions = try assembledInstructions.map { try $0.expandExpression(using: constantExpander) }
+        let expandedInstructions = try assembledInstructions.map { try $0.expandExpression(using: constantExpander, inParentLabel: label.parent ?? label.identifier) }
 		
 		let origin = try originOfLabel(label: label, constantExpander: constantExpander)
-		let block = Linker.Block(name: label.identifier.lowercased(), origin: origin, data: expandedInstructions)
+        let block = Linker.Block(name: label.identifier, parent: label.parent, origin: origin, data: expandedInstructions)
 		
 		return block
 	}
 	
 	func originOfLabel(label : Label, constantExpander : ExpressionConstantExpansion) throws -> Int? {
 		guard let declaredOrigin = label.options["org"] else { return nil }
-		let expandedOrigin = try constantExpander.expand(declaredOrigin)
+        let expandedOrigin = try constantExpander.expand(declaredOrigin, labelParent: label.parent ?? label.identifier)
 		
 		guard case .value(let origin) = expandedOrigin else { throw ErrorMessage("Invalid value `\(expandedOrigin)` for block origin") }
 		return origin

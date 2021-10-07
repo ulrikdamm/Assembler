@@ -73,7 +73,7 @@ class Disassembler {
 			
 			let blockName = "label_\(String(target, radix: 16))"
 			let blockInstructions = Array(instructions[instructionIndex ..< instructionIndex + length]).map { $0.0 }
-			let label = Label(identifier: blockName, instructions: blockInstructions, options: ["org": .value(Int(target))])
+            let label = Label(identifier: blockName, parent: nil, instructions: blockInstructions, options: ["org": .value(Int(target))])
 			labels.append(label)
 		}
 		

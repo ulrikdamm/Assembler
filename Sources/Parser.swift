@@ -92,6 +92,11 @@ struct State {
 		if let (c, state) = getChar(), c.isAlpha { return (String(c), state) }
 		return nil
 	}
+    
+    func getChar(_ char : Character) -> (value : String, state : State)? {
+        if let (c, state) = getChar(), c == char { return (String(c), state) }
+        return nil
+    }
 		
 	func getUntil(end : String) -> (value : String, state : State)? {
 		var state = self
@@ -111,11 +116,11 @@ struct State {
 	func getIdentifier() -> (value : String, state : State)? {
 		var state = ignoreWhitespace()
 		
-		guard let (char, newState) = state.getAlphaChar() else { return nil }
+        guard let (char, newState) = state.getAlphaChar() ?? state.getChar(".") else { return nil }
 		var string = char
 		state = newState
 		
-		while let (char, newState) = state.getAlphaChar() ?? state.getNumericChar() {
+		while let (char, newState) = state.getAlphaChar() ?? state.getNumericChar() ?? state.getChar(".") {
 			string += char
 			state = newState
 		}

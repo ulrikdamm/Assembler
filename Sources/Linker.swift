@@ -38,10 +38,10 @@ public enum Opcode : CustomStringConvertible {
 		return [.byte(n16.lsb), .byte(n16.msb)]
 	}
 	
-	func expandExpression(using constantExpander : ExpressionConstantExpansion) throws -> Opcode {
+    func expandExpression(using constantExpander : ExpressionConstantExpansion, inParentLabel parent : String?) throws -> Opcode {
 		switch self {
 		case .expression(let expr, let resultType):
-			let expanded = try constantExpander.expand(expr)
+			let expanded = try constantExpander.expand(expr, labelParent: parent)
 			return .expression(expanded, resultType)
 		case _:
 			return self
@@ -63,10 +63,20 @@ extension Opcode : Equatable {
 struct Linker {
 	struct Block {
 		let name : String
+        let parent : String?
 		let origin : Int?
 		let data : [Opcode]
 		
 		var length : Int { return data.map(\.byteLength).sum() }
+        
+        var nameAndParent : (String, String?) { (name, parent) }
+        
+        init(name : String, parent : String? = nil, origin : Int? = nil, data : [Opcode]) {
+            self.name = name
+            self.parent = parent
+            self.origin = origin
+            self.data = data
+        }
 	}
 	
 	struct Allocation {
@@ -160,7 +170,7 @@ struct Linker {
 	func replaceExpressionLabelValue(expression : Expression) throws -> Expression {
 		switch expression {
 		case .constant(let name):
-			guard let location = blockStart(name: name) else { throw ErrorMessage("Unknown label `\(name)`") }
+            guard let location = findAllocation(name: name)?.start else { throw ErrorMessage("Unknown label `\(name)`") }
 			return .value(location)
 		case _:
 			return expression
@@ -183,7 +193,17 @@ struct Linker {
 	
 	func blockForAllocation(_ allocation : Allocation) -> Block { return blocks[allocation.blockId] }
 	
-	func blockStart(name : String) -> Int? {
-		return allocations.first { blockForAllocation($0).name == name }?.start
+	func findAllocation(name : String) -> Allocation? {
+        if let period = name.firstIndex(of: ".") {
+            let parent = name[name.startIndex ..< period]
+            let localName = name[name.index(after: period) ..< name.endIndex]
+            
+            return allocations.first { allocation in
+                let block = blockForAllocation(allocation)
+                return block.name == localName && block.parent != nil && block.parent! == parent
+            }
+        } else {
+            return allocations.first { blockForAllocation($0).nameAndParent == (name, nil) }
+        }
 	}
 }
