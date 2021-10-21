@@ -6,16 +6,18 @@
 //  Copyright © 2016 Ufd.dk. All rights reserved.
 //
 
-struct State {
+struct ParserState {
 	struct ParseError : Error {
 		enum Reason {
 			case expectedMatch(match : String)
+            case invalidEscape(value : String)
+            case invalidUnicodeEscape
 		}
 		
 		let reason : Reason
-		let state : State
+		let state : ParserState
 		
-		init(reason : Reason, _ state : State) {
+		init(reason : Reason, _ state : ParserState) {
 			self.reason = reason
 			self.state = state
 		}
@@ -23,6 +25,8 @@ struct State {
 		var message : String {
 			switch reason {
 			case .expectedMatch(let match): return "Expected `\(match)`"
+            case .invalidEscape(let value): return "Invalid escape sequence `\(value)`"
+            case .invalidUnicodeEscape: return "Unicode escape sequence must be two hex digits"
 			}
 		}
 		
@@ -32,8 +36,8 @@ struct State {
 	}
 	
 	let source : String
-	let location : String.Index
-	let line : Int
+	var location : String.Index
+	var line : Int
 	
 	init(source : String, location : String.Index, line : Int) {
 		self.source = source
@@ -53,182 +57,293 @@ struct State {
 		self.line = 1
 	}
 	
-	var atEnd : Bool {
-		return location == source.endIndex
-	}
+	var atEnd : Bool { return location >= source.endIndex }
+    var current : Character? { return getAt(location) }
+    
+    mutating func advance() {
+        guard let current = current else { return }
+        
+        if current.isNewline { line += 1 }
+        location = source.index(after: location)
+    }
 	
-	func getAt(location : String.Index) -> Character? {
-		guard location < source.endIndex else { return nil }
+	func getAt(_ location : String.Index) -> Character? {
+		guard !atEnd else { return nil }
 		return source[location]
 	}
-	
-	func getChar(ignoreComments : Bool = true) -> (value : Character, state : State)? {
-		guard var next = getAt(location: location) else { return nil }
-		var nextLocation = source.index(after: location)
-		let lineBreaks = (next == "\n" ? 1 : 0)
-		
-		while next == "#" {
-			while true {
-				guard let c = getAt(location: nextLocation) else { return nil }
-				nextLocation = source.index(after: nextLocation)
-				
-				if c == "\n" {
-					next = c
-					break
-				}
-			}
-		}
-		
-		let state = State(source: source, location: nextLocation, line: line + lineBreaks)
-		return (next, state)
+    
+    mutating func skip(until condition : (Character) -> Bool) {
+        while let char = current, !condition(char) {
+            if char.isNewline { line += 1 }
+            location = source.index(after: location)
+        }
+    }
+    
+    mutating func skipChars(_ char : Character) {
+        skip(until: { c in c != char })
+    }
+    
+    mutating func skipChars(in chars : [Character]) {
+        skip(until: { c in !chars.contains(c) })
+    }
+    
+    mutating func skipWhitespace(includingLineBreaks : Bool = false) {
+        if (includingLineBreaks) {
+            skip(until: { c in !c.isWhitespace && !c.isNewline })
+        } else {
+            skip(until: { c in !c.isWhitespace })
+        }
+    }
+    
+    mutating func skipComments() {
+        guard let hashChar = current, hashChar == "#" else { return }
+        skip(until: \Character.isNewline)
+    }
+    
+    mutating func skipCommentsAndWhitespace(includingLineBreaks : Bool = true) {
+        var inComment = false
+        
+        skip(until: { c in
+            if inComment && c.isNewline {
+                inComment = false
+                return (includingLineBreaks ? false : true)
+            }
+            
+            if inComment { return false }
+            
+            if c == "#" {
+                inComment = true
+                return false
+            }
+            
+            if c.isWhitespace || (includingLineBreaks && c.isNewline) { return false }
+            
+            return true
+        })
+    }
+    
+    mutating func getChar() -> Character? {
+        guard let char = getAt(location) else { return nil }
+        advance()
+        return char
+    }
+    
+    mutating func getChar(_ char : Character) -> Character? {
+        guard let c = getAt(location), char == c else { return nil }
+        advance()
+        return c
+    }
+    
+    mutating func getChar(_ chars : [Character]) -> Character? {
+        guard let c = getAt(location), chars.contains(c) else { return nil }
+        advance()
+        return c
+    }
+    
+    mutating func getChar(where condition : (Character) -> Bool) -> Character? {
+        guard let c = getAt(location), condition(c) else { return nil }
+        advance()
+        return c
+    }
+    
+	mutating func getNumericChar() -> Character? {
+        guard let char = current, char.isNumeric else { return nil }
+        advance()
+        return char
 	}
 	
-	func getNumericChar() -> (value : String, state : State)? {
-		if let (c, state) = getChar(), c.isNumeric { return (String(c), state) }
-		return nil
-	}
-	
-	func getAlphaChar() -> (value : String, state : State)? {
-		if let (c, state) = getChar(), c.isAlpha { return (String(c), state) }
-		return nil
+	mutating func getAlphaChar() -> Character? {
+        guard let char = current, char.isAlpha else { return nil }
+        advance()
+        return char
 	}
     
-    func getChar(_ char : Character) -> (value : String, state : State)? {
-        if let (c, state) = getChar(), c == char { return (String(c), state) }
-        return nil
+    mutating func match(_ char : Character) -> Bool {
+        guard let c = current, c == char else { return false }
+        advance()
+        return true
     }
-		
-	func getUntil(end : String) -> (value : String, state : State)? {
-		var state = self
+    
+    mutating func match(_ chars : [Character]) -> Bool {
+        guard let c = current, chars.contains(c) else { return false }
+        advance()
+        return true
+    }
+    
+    mutating func match(_ string : String) -> Bool {
+        let originalState = self
+        
+        for character in string {
+            guard match(character) else { self = originalState; return false }
+        }
+        
+        return true
+    }
+    
+    mutating func matchOrFail(_ string : String) throws {
+        for character in string {
+            guard match(character) else { throw ParseError(reason: .expectedMatch(match: string), self) }
+        }
+    }
+    
+    mutating func getUntil(_ end : Character) -> String? {
+        let originalState = self
+        var string = ""
+        
+        while !match(end) {
+            guard let c = getChar() else { self = originalState; return nil }
+            string.append(c)
+        }
+        
+        return string
+    }
+    
+    mutating func getUntil(_ end : [Character]) -> String? {
+        let originalState = self
+        var string = ""
+        
+        while !match(end) {
+            guard let c = getChar() else { self = originalState; return nil }
+            string.append(c)
+        }
+        
+        return string
+    }
+    
+	mutating func getUntil(_ end : String) -> String? {
+		let originalState = self
 		var string = ""
 		
-		while true {
-			if let newState = state.match(string: end) {
-				return (string, newState)
-			}
-			
-			guard let (c, newState) = state.getChar() else { return nil }
-			state = newState
-			string += String(c)
+		while !match(end) {
+            guard let c = getChar() else { self = originalState; return nil }
+            string.append(c)
 		}
+        
+        return string
 	}
-	
-	func getIdentifier() -> (value : String, state : State)? {
-		var state = ignoreWhitespace()
+    
+	mutating func getIdentifier() -> String? {
+		skipWhitespace()
+        let originalState = self
 		
-        guard let (char, newState) = state.getAlphaChar() ?? state.getChar(".") else { return nil }
-		var string = char
-		state = newState
-		
-		while let (char, newState) = state.getAlphaChar() ?? state.getNumericChar() ?? state.getChar(".") {
-			string += char
-			state = newState
-		}
-		
-		return (string, state)
-	}
-	
-	func getNumber() -> (value : Int, state : State)? {
-		var state = ignoreWhitespace()
-		
-		if let (z, newState) = state.getChar(), z == "0" {
-			if let (c, newState) = newState.getChar(), c == "d" {
-				state = newState
-				return state.getDecimalNumber()
-			}
-			
-			if let (c, newState) = newState.getChar(), c == "x" {
-				state = newState
-				return state.getHexNumber()
-			}
-			
-			if let (c, newState) = newState.getChar(), c == "b" {
-				state = newState
-				return state.getBinaryNumber()
-			}
-		}
-		
-		return state.getDecimalNumber()
-	}
-	
-	func getHexNumber() -> (value : Int, state : State)? {
-		var state = self
-		
-		guard let (char, newState) = state.getChar(), char.isHex else { return nil }
+        guard let char = getAlphaChar() ?? getChar(".") else { self = originalState; return nil }
 		var string = String(char)
-		state = newState
 		
-		while let (char, newState) = state.getChar(), char.isHex {
-			string += String(char)
-			state = newState
+		while let char = getAlphaChar() ?? getNumericChar() ?? getChar(".") {
+            string.append(char)
 		}
 		
-		return (Int(string, radix: 16)!, state)
+		return string
 	}
 	
-	func getDecimalNumber() -> (value : Int, state : State)? {
-		var state = self
-		
-		guard let (char, newState) = state.getNumericChar() else { return nil }
-		var string = char
-		state = newState
-		
-		while let (char, newState) = state.getNumericChar() {
-			string += char
-			state = newState
-		}
-		
-		return (Int(string)!, state)
+	mutating func getNumber() -> Int? {
+        skipWhitespace()
+        let originalState = self
+        
+        if match("0") {
+            if match("d") { return getDecimalNumber() }
+            if match("x") { return getHexNumber() }
+            if match("b") { return getBinaryNumber() }
+            self = originalState
+        }
+        
+        return getDecimalNumber()
 	}
 	
-	func getBinaryNumber() -> (value : Int, state : State)? {
-		var state = self
-		
-		guard let (char, newState) = state.getChar(), char == "0" || char == "1" else { return nil }
-		var string = String(char)
-		state = newState
-		
-		while let (char, newState) = state.getChar(), char == "0" || char == "1" || char == "_" {
-			state = newState
-			if char != "_" {
-				string += String(char)
-			}
-		}
-		
-		return (Int(string, radix: 2)!, state)
+	mutating func getHexNumber() -> Int? {
+        skipWhitespace()
+        let originalState = self
+        
+        var string = ""
+        
+        while let char = getChar(where: \.isHex) {
+            string.append(char)
+            skipChars("_")
+        }
+        
+        if string.count == 0 { self = originalState; return nil }
+        
+        return Int(string, radix: 16)!
 	}
 	
-	func ignoreWhitespace(allowNewline : Bool = false) -> State {
-		guard let (char, state) = getChar(), char.isWhitespace || (allowNewline && char == "\n") else { return self }
-		return state.ignoreWhitespace(allowNewline: allowNewline)
+	mutating func getDecimalNumber() -> Int? {
+        skipWhitespace()
+        let originalState = self
+        
+        var string = ""
+        
+        while let char = getNumericChar() {
+            string.append(char)
+            skipChars("_")
+        }
+        
+        if string.count == 0 { self = originalState; return nil }
+        
+        return Int(string)!
 	}
 	
-	func match(string : String) -> State? {
-		var state = self
-		for character in string {
-			guard let (c, newState) = state.getChar(), character == c else { return nil }
-			state = newState
-		}
-		return state
+	mutating func getBinaryNumber() -> Int? {
+        skipWhitespace()
+        let originalState = self
+        
+        var string = ""
+        
+        while let char = getChar(["0", "1"]) {
+            string.append(char)
+            skipChars("_")
+        }
+        
+        if string.count == 0 { self = originalState; return nil }
+        
+        return Int(string, radix: 2)!
 	}
 	
-	func getStringLiteral() throws -> (value : String, state : State)? {
-		var state = ignoreWhitespace()
+	mutating func getStringLiteral() throws -> String? {
+		skipWhitespace()
 		
-		guard let (c, newState1) = state.getChar(), c == "\"" else { return nil }
-		state = newState1
-		
-		guard let (string, newState2) = state.getUntil(end: "\"") else {
-			throw ParseError(reason: .expectedMatch(match: "\""), state)
-		}
-		
-		return (string, newState2)
+        guard match("\"") else { return nil }
+        
+        var string = ""
+        
+        while true {
+            guard let c = getChar() else { throw ParseError(reason: .expectedMatch(match: "\""), self) }
+            
+            switch c {
+            case "\"": return string
+            case "\\":
+                guard let escapeChar = getChar() else { throw ParseError(reason: .invalidEscape(value: ""), self) }
+                
+                switch escapeChar {
+                case "\"": string.append("\"")
+                case "\\": string.append("\\")
+                case "0": string.append("\0")
+                case "n": string.append("\n")
+                case "t": string.append("\t")
+                case "r": string.append("\r")
+                case "u":
+                    guard
+                        let c1 = getChar(where: \.isHex),
+                        let c2 = getChar(where: \.isHex),
+                        let unicodeValue = Int(String(c1) + String(c2), radix: 16),
+                        let scalar = Unicode.Scalar(unicodeValue) else {
+                        throw ParseError(reason: .invalidUnicodeEscape, self)
+                    }
+                    string.append(Character(scalar))
+                case _: throw ParseError(reason: .invalidEscape(value: String(escapeChar)), self)
+                }
+            case _: string.append(c)
+            }
+        }
 	}
 	
-	func getSeparator() -> State? {
-		let state = ignoreWhitespace(allowNewline: false)
-		if state.atEnd { return state }
-		guard let (c, state1) = state.getChar(), c == "\n" || c == ";" else { return nil }
-		return state1.getSeparator() ?? state1
+	mutating func getSeparator() -> Bool {
+        skipCommentsAndWhitespace(includingLineBreaks: false)
+        
+        if atEnd { return true }
+        if !match(["\n", ";"]) { return false }
+        
+        skipCommentsAndWhitespace()
+        let _ = getSeparator()
+        return true
 	}
 }

@@ -16,12 +16,12 @@ class GameboyInstructionSetTests : XCTestCase {
 		let ins : Instruction
 		
 		do {
-			let state = State(source: code)
-			guard let i = try AssemblyParser.getInstruction(state)?.value else {
+			var state = ParserState(source: code)
+			guard let i = try state.getInstruction() else {
 				XCTFail("Couldn't compile: \(code)"); return
 			}
 			ins = i
-		} catch let error as State.ParseError {
+		} catch let error as ParserState.ParseError {
 			XCTFail("Couldn't compile: \(error.localizedDescription)"); return
 		} catch let error {
 			XCTFail("Couldn't compile: \(error)"); return
@@ -43,12 +43,12 @@ class GameboyInstructionSetTests : XCTestCase {
 		let ins : Instruction
 		
 		do {
-			let state = State(source: code)
-			guard let i = try AssemblyParser.getInstruction(state)?.value else {
+			var state = ParserState(source: code)
+			guard let i = try state.getInstruction() else {
 				XCTFail("Couldn't compile: \(code)"); return
 			}
 			ins = i
-		} catch let error as State.ParseError {
+		} catch let error as ParserState.ParseError {
 			XCTFail("Couldn't compile: \(error.localizedDescription)"); return
 		} catch let error {
 			XCTFail("Couldn't compile: \(error)"); return
@@ -57,7 +57,7 @@ class GameboyInstructionSetTests : XCTestCase {
 		do {
 			let _ = try instructionSet.assembleInstruction(instruction: ins)
 			XCTFail()
-		} catch is ErrorMessage {
+		} catch is AssemblyError {
 			return
 		} catch let error {
 			XCTFail("Unexpected error: \(error)")
@@ -410,7 +410,45 @@ class GameboyJumpTests : GameboyInstructionSetTests {
 }
 
 class GameboyFailTests : GameboyInstructionSetTests {
-	func test_ld_b_hlp()    { /* ld b, [hl+] */ }
+    func testOperandsErrorLineNumber() throws {
+        var state = ParserState(source: [
+            "ld a, b",
+            "#line2",
+            "ld a, b, c"
+        ])
+        
+        guard let _ = try state.getInstruction() else { XCTFail(); return }
+        guard let instruction2 = try state.getInstruction() else { XCTFail(); return }
+        
+        do {
+            let _ = try instructionSet.assembleInstruction(instruction: instruction2)
+            XCTFail()
+        } catch let error as AssemblyError {
+            XCTAssertEqual(error.line, 3)
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testArithmeticErrorLineNumber() throws {
+        var state = ParserState(source: [
+            "ld a, b",
+            "#line2",
+            "ld a, 1000"
+        ])
+        
+        guard let _ = try state.getInstruction() else { XCTFail(); return }
+        guard let instruction2 = try state.getInstruction() else { XCTFail(); return }
+        
+        do {
+            let _ = try instructionSet.assembleInstruction(instruction: instruction2)
+            XCTFail()
+        } catch let error as AssemblyError {
+            XCTAssertEqual(error.line, 3)
+        } catch {
+            XCTFail()
+        }
+    }
 }
 
 class GameboyExpressionOpcodeTests : GameboyInstructionSetTests {

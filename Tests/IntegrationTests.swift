@@ -10,15 +10,19 @@ import XCTest
 @testable import Assembler
 
 class IntegrationTests : XCTestCase {
+    func parse(_ source : [String]) throws -> Program {
+        var state = ParserState(source: source)
+        let program = try state.getProgram()
+        return program
+    }
+    
     func test_labels() throws {
         let source = [
             "label1: ld hl, label2",
             "label2: xor a"
         ]
         
-        let initialState = State(source: source)
-        guard let program = try AssemblyParser.getProgram(initialState)?.value else { throw ErrorMessage("Couldn't parse source") }
-        
+        let program = try parse(source)
         XCTAssertEqual(program.blocks.count, 2)
         XCTAssertEqual(program.blocks[0].identifier, "label1")
         XCTAssertEqual(program.blocks[0].instructions.map(\.mnemonic), ["ld"])
@@ -33,9 +37,7 @@ class IntegrationTests : XCTestCase {
             "label3: xor a"
         ]
         
-        let initialState = State(source: source)
-        guard let program = try AssemblyParser.getProgram(initialState)?.value else { throw ErrorMessage("Couldn't parse source") }
-        
+        let program = try parse(source)
         XCTAssertEqual(program.blocks.count, 3)
         XCTAssertEqual(program.blocks[0].identifier, "label1")
         XCTAssertEqual(program.blocks[0].instructions.map(\.mnemonic), ["ld"])
@@ -52,9 +54,7 @@ class IntegrationTests : XCTestCase {
             "label2: ld de, label1.label2"
         ]
         
-        let initialState = State(source: source)
-        guard let program = try AssemblyParser.getProgram(initialState)?.value else { throw ErrorMessage("Couldn't parse source") }
-        
+        let program = try parse(source)
         XCTAssertEqual(program.blocks.count, 3)
         
         XCTAssertEqual(program.blocks[0].identifier, "label1")
@@ -78,9 +78,7 @@ class IntegrationTests : XCTestCase {
             ".label2: ld sp, .label2"
         ]
         
-        let initialState = State(source: source)
-        guard let program = try AssemblyParser.getProgram(initialState)?.value else { throw ErrorMessage("Couldn't parse source") }
-        
+        let program = try parse(source)
         let assembler = Assembler(instructionSet: GameboyInstructionSet(), constants: program.constants)
         let blocks = try program.blocks.map { block in try assembler.assembleBlock(label: block) }
         let bytes = try Linker(blocks: blocks).link()
@@ -99,9 +97,7 @@ class IntegrationTests : XCTestCase {
             ".label2: ld bc, .label1"
         ]
         
-        let initialState = State(source: source)
-        guard let program = try AssemblyParser.getProgram(initialState)?.value else { throw ErrorMessage("Couldn't parse source") }
-        
+        let program = try parse(source)
         let assembler = Assembler(instructionSet: GameboyInstructionSet(), constants: program.constants)
         let blocks = try program.blocks.map { block in try assembler.assembleBlock(label: block) }
         
@@ -109,55 +105,78 @@ class IntegrationTests : XCTestCase {
         
         do {
             _ = try Linker(blocks: blocks).link()
-        } catch let e as ErrorMessage where e.message.contains("Unknown label") {
+        } catch let e as AssemblyError where e.message.contains("Unknown label") && e.line == 2 {
             didFail = true
         }
         
         XCTAssert(didFail)
     }
     
-	func test_linktimeExpressionEvaluation() {
+	func test_linktimeExpressionEvaluation() throws {
 		let source = [
 			"label1: ld hl, label2",
 			"[org(0x05)] label2: xor a"
 		]
 		
-		let result = try! assembleProgram(source: source, instructionSet: GameboyInstructionSet())
+		let result = try assembleProgram(source: source, instructionSet: GameboyInstructionSet())
 		XCTAssertEqual(result, [0x21, 0x05, 0x00, 0x00, 0x00, 0xaf])
 	}
     
-    func test_linktimeEmptyLabels() {
+    func test_linktimeEmptyLabels() throws {
         let source = [
             "label1: ld hl, label2",
             "label2:",
             "[org(0x05)] label3: xor a"
         ]
         
-        let result = try! assembleProgram(source: source, instructionSet: GameboyInstructionSet())
+        let result = try assembleProgram(source: source, instructionSet: GameboyInstructionSet())
         XCTAssertEqual(result, [0x21, 0x03, 0x00, 0x00, 0x00, 0xaf])
     }
     
-    func test_linktimeEmptyLabelsAtEnd() {
+    func test_linktimeEmptyLabelsAtEnd() throws {
         let source = [
             "label1: ld hl, label2",
             "label2:"
         ]
         
-        let result = try! assembleProgram(source: source, instructionSet: GameboyInstructionSet())
+        let result = try assembleProgram(source: source, instructionSet: GameboyInstructionSet())
         XCTAssertEqual(result, [0x21, 0x03, 0x00])
     }
 	
-	func test_relativeJumps() {
+	func test_relativeJumps() throws {
 		let source = [
 			"label1: db 1, 2, 3",
 			"label2: db 4, 5, 6",
 			"label3: db 7, 8, 9; jr label2"
 		]
 		
-		let result = try! assembleProgram(source: source, instructionSet: GameboyInstructionSet())
+		let result = try assembleProgram(source: source, instructionSet: GameboyInstructionSet())
 		XCTAssertEqual(result, [1, 2, 3, 4, 5, 6, 7, 8, 9, 0x18, 0xf8])
 	}
-	
+    
+    func testExpressionErrorLineNumbers() throws {
+        var state = ParserState(source: [
+            "line1:",
+            "line2:",
+            "line3:",
+            "xor a",
+            "db (label4 + 5)"
+        ])
+        
+        let program = try state.getProgram()
+        let assembler = Assembler(instructionSet: GameboyInstructionSet(), constants: program.constants)
+        let blocks = try program.blocks.map { block in try assembler.assembleBlock(label: block) }
+        
+        do {
+            let _ = try Linker(blocks: blocks).link()
+            XCTFail()
+        } catch let error as AssemblyError {
+            XCTAssertEqual(error.line, 5)
+        } catch {
+            XCTFail()
+        }
+    }
+    
 //	func test_smileyExample() {
 //		let sourceURL = Bundle(for: IntegrationTests.self).url(forResource: "smiley", withExtension: "asm")!
 //		let source = try! String(contentsOf: sourceURL)
@@ -192,4 +211,19 @@ class IntegrationTests : XCTestCase {
 	//		}
 	//	}
 	//}
+    
+    func test_performance() throws {
+        let sourceURL = URL(fileURLWithPath: "/Users/ulrikdamm/Developer/Planet Life GB/game.asm")
+        let source = try String(contentsOf: sourceURL)
+        
+        measure {
+            for _ in 0..<10 {
+                do {
+                    let _ = try assembleProgram(source: [source], instructionSet: GameboyInstructionSet())
+                } catch let error {
+                    XCTFail(error.localizedDescription)
+                }
+            }
+        }
+    }
 }

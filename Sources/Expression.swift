@@ -110,11 +110,11 @@ extension Expression : CustomStringConvertible, CustomDebugStringConvertible {
 struct ExpressionConstantExpansion {
 	let constants : [String: Expression]
 	
-    func expand(_ expression : Expression, labelParent : String? = nil, constantStack : [String] = []) throws -> Expression {
+    func expand(_ expression : Expression, labelParent : String? = nil, constantStack : [String] = [], line : Int? = nil) throws -> Expression {
 		let lowercased = try expression.mapSubExpressions { expr -> Expression in
 			switch expr {
             case .constant(let str) where str.hasPrefix("."):
-                guard let parent = labelParent else { throw ErrorMessage("Can't expand local label \"\(str)\" without parent") }
+                guard let parent = labelParent else { throw AssemblyError("Can't expand local label \"\(str)\" without parent", line: line) }
                 return .constant(parent + str)
 			case _: return expr
 			}
@@ -123,7 +123,7 @@ struct ExpressionConstantExpansion {
 		let newExpression = try lowercased.mapSubExpressions { expr throws -> Expression in
 			if case .constant(let str) = expr, let value = constants[str] {
 				guard !constantStack.contains(str) else {
-					throw ErrorMessage("Cannot recursively expand constants")
+					throw AssemblyError("Cannot recursively expand constants", line: line)
 				}
 				return try expand(value, labelParent: labelParent, constantStack: constantStack + [str])
 			} else {

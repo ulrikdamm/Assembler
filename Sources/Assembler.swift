@@ -10,6 +10,12 @@ public protocol InstructionSet {
 	func assembleInstruction(instruction : Instruction) throws -> [Opcode]
 }
 
+extension InstructionSet {
+    func assembleInstructionWithLine(instruction : Instruction) throws -> [(Opcode, Int?)] {
+        return try assembleInstruction(instruction: instruction).map { ins in (ins, instruction.line) }
+    }
+}
+
 struct Assembler {
 	let constants : [String: Expression]
 	let instructionSet : InstructionSet
@@ -26,22 +32,21 @@ struct Assembler {
 	}
 	
 	func assembleBlock(label : Label) throws -> Linker.Block {
-		let assembledInstructions = try label.instructions.map(instructionSet.assembleInstruction).joined()
-		
-		let constantExpander = ExpressionConstantExpansion(constants: constants)
-        let expandedInstructions = try assembledInstructions.map { try $0.expandExpression(using: constantExpander, inParentLabel: label.parent ?? label.identifier) }
-		
-		let origin = try originOfLabel(label: label, constantExpander: constantExpander)
+        let assembledInstructions = try label.instructions.map(instructionSet.assembleInstructionWithLine).joined()
+        
+        let constantExpander = ExpressionConstantExpansion(constants: constants)
+        let expandedInstructions = try assembledInstructions.map { (ins, line) in (try ins.expandExpression(using: constantExpander, inParentLabel: label.parent ?? label.identifier), line) }
+        
+        let origin = try originOfLabel(label: label, constantExpander: constantExpander)
         let block = Linker.Block(name: label.identifier, parent: label.parent, origin: origin, data: expandedInstructions)
-		
-		return block
+        return block
 	}
 	
 	func originOfLabel(label : Label, constantExpander : ExpressionConstantExpansion) throws -> Int? {
 		guard let declaredOrigin = label.options["org"] else { return nil }
-        let expandedOrigin = try constantExpander.expand(declaredOrigin, labelParent: label.parent ?? label.identifier)
+        let expandedOrigin = try constantExpander.expand(declaredOrigin, labelParent: label.parent ?? label.identifier, line: label.line)
 		
-		guard case .value(let origin) = expandedOrigin else { throw ErrorMessage("Invalid value `\(expandedOrigin)` for block origin") }
+        guard case .value(let origin) = expandedOrigin else { throw AssemblyError("Invalid value `\(expandedOrigin)` for block origin", line: label.line) }
 		return origin
 	}
 }

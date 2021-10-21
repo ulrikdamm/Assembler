@@ -115,7 +115,7 @@ func spriteSheetBlock(fileLocation : URL, memoryLocation : UInt16?, instructionS
 		origin = 0x4000
 	}
 	
-	return try assembler.assembleBlock(label: Label(identifier: "sprites", instructions: spritesInstruction, options: ["org": .value(Int(origin))]))
+    return try assembler.assembleBlock(label: Label(identifier: "sprites", instructions: spritesInstruction, options: ["org": .value(Int(origin))]))
 }
 
 func main() throws {
@@ -132,8 +132,8 @@ func main() throws {
 	
 	let arguments = try Arguments(fromRaw: rawArguments)
 	let source = try String(contentsOf: arguments.inputFile)
-	
-	guard let program = try AssemblyParser.getProgram(State(source: source))?.value else { throw ErrorMessage("Couldn't parse source") }
+    var state = ParserState(source: source)
+	let program = try state.getProgram()
 	
 	let instructionSet : InstructionSet
 	
@@ -156,7 +156,7 @@ func main() throws {
 	let linker = Linker(blocks: blocks)
 	let bytes = try linker.link()
 	
-	let data = Data(bytes: bytes)
+	let data = Data(bytes)
 	try data.write(to: arguments.outputFile)
 	
 	if let symbolsFile = arguments.symbolsFile {
@@ -170,12 +170,4 @@ func main() throws {
 	}
 }
 
-do {
-	try main()
-} catch let error as ErrorMessage {
-	print("Assembler error: \(error.message)")
-} catch let error as State.ParseError {
-	print("Parsing error: \(error.localizedDescription)")
-} catch let error {
-	print("Error: \(error.localizedDescription)")
-}
+do { try main() } catch let error { print(error.localizedDescription); exit(1) }

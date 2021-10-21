@@ -156,8 +156,8 @@ public struct GameboyInstructionSet : InstructionSet {
 		case .value(0x28): return [.byte(0xef)]
 		case .value(0x30): return [.byte(0xf7)]
 		case .value(0x38): return [.byte(0xff)]
-		case .value(_): throw ErrorMessage("Unsupported reset target")
-		case _: throw ErrorMessage("Invalid reset target")
+		case .value(let v): throw ErrorMessage("Unsupported reset target `0x\(String(v, radix: 16))`")
+		case let expr: throw ErrorMessage("Invalid reset target `\(expr)`")
 		}
 	}
 	
@@ -168,7 +168,7 @@ public struct GameboyInstructionSet : InstructionSet {
 		case .constant("bc"): opcode = 0xc5
 		case .constant("de"): opcode = 0xd5
 		case .constant("hl"): opcode = 0xe5
-		case _: throw ErrorMessage("Invalid operand for push")
+		case let expr: throw ErrorMessage("Invalid operand `\(expr)` for push")
 		}
 		return [.byte(opcode)]
 	}
@@ -180,7 +180,7 @@ public struct GameboyInstructionSet : InstructionSet {
 		case .constant("bc"): opcode = 0xc1
 		case .constant("de"): opcode = 0xd1
 		case .constant("hl"): opcode = 0xe1
-		case _: throw ErrorMessage("Invalid operand for pop")
+		case let expr: throw ErrorMessage("Invalid operand `\(expr)` for pop")
 		}
 		return [.byte(opcode)]
 	}
@@ -314,7 +314,7 @@ public struct GameboyInstructionSet : InstructionSet {
 		try instruction.getNoOperands()
 		return result.map { Opcode.byte($0) }
 	}
-	
+    
 	public func assembleInstruction(instruction : Instruction) throws -> [Opcode] {
 		do {
 			switch instruction.mnemonic {
@@ -371,12 +371,10 @@ public struct GameboyInstructionSet : InstructionSet {
 			case "ccf": return try assembleSpecial(instruction, result: [0x3f])
 			case "scf": return try assembleSpecial(instruction, result: [0x37])
 				
-			case _: throw ErrorMessage("Unknown mnemonic \(instruction.mnemonic)")
+            case _: throw ErrorMessage("Unknown mnemonic \(instruction.mnemonic)")
 			}
 		} catch let error as ErrorMessage {
-			throw ErrorMessage("Error assembling instruction on line \(instruction.line) `\(instruction)`: \(error.message)")
-		} catch let error {
-			throw error
+            throw AssemblyError(error.message, line: instruction.line)
 		}
 	}
 	

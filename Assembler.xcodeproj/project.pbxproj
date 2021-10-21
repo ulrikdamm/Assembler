@@ -40,6 +40,7 @@
 		FFC77FC71D9C16F300BF3519 /* Intel8080InstructionSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF077B2F1D9BDB9D0088F749 /* Intel8080InstructionSet.swift */; };
 		FFDD34BD1D856EC100B09D03 /* ParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFDD34BC1D856EC100B09D03 /* ParserTests.swift */; };
 		FFEBFEA01D8BFFC400FCFDB3 /* LinkerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFEBFE9F1D8BFFC400FCFDB3 /* LinkerTests.swift */; };
+		FFF78E722720B6EF00316AC6 /* AssemblyParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFF78E712720B6EF00316AC6 /* AssemblyParserTests.swift */; };
 		FFF9C01920B8543000D1FB8A /* SpriteReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFF9C01820B8543000D1FB8A /* SpriteReader.swift */; };
 		FFF9C01A20B8543000D1FB8A /* SpriteReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFF9C01820B8543000D1FB8A /* SpriteReader.swift */; };
 /* End PBXBuildFile section */
@@ -106,6 +107,7 @@
 		FFAD934C1DB408F300686426 /* AssemblyParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssemblyParser.swift; sourceTree = "<group>"; };
 		FFDD34BC1D856EC100B09D03 /* ParserTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ParserTests.swift; sourceTree = "<group>"; };
 		FFEBFE9F1D8BFFC400FCFDB3 /* LinkerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LinkerTests.swift; sourceTree = "<group>"; };
+		FFF78E712720B6EF00316AC6 /* AssemblyParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssemblyParserTests.swift; sourceTree = "<group>"; };
 		FFF9C01820B8543000D1FB8A /* SpriteReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpriteReader.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -198,6 +200,7 @@
 				FFEBFE9F1D8BFFC400FCFDB3 /* LinkerTests.swift */,
 				FF1923C11D8C687300890EFF /* IntegrationTests.swift */,
 				FF873E8B20BDA277004D82F2 /* SpriteReaderTests.swift */,
+				FFF78E712720B6EF00316AC6 /* AssemblyParserTests.swift */,
 			);
 			name = AssemblerTests;
 			path = Tests;
@@ -286,7 +289,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0930;
-				LastUpgradeCheck = 0930;
+				LastUpgradeCheck = 1250;
 				ORGANIZATIONNAME = Ufd.dk;
 				TargetAttributes = {
 					FF451FB81D84388400E54BD3 = {
@@ -301,17 +304,16 @@
 					};
 					FF451FEA1D843A6A00E54BD3 = {
 						CreatedOnToolsVersion = 8.0;
-						LastSwiftMigration = 0900;
+						LastSwiftMigration = 1250;
 						ProvisioningStyle = Automatic;
 					};
 				};
 			};
 			buildConfigurationList = FF451FB31D84388400E54BD3 /* Build configuration list for PBXProject "Assembler" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
 				Base,
 			);
@@ -372,6 +374,7 @@
 				FFEBFEA01D8BFFC400FCFDB3 /* LinkerTests.swift in Sources */,
 				FF873E8C20BDA277004D82F2 /* SpriteReaderTests.swift in Sources */,
 				FF0C7D341D854E6100E6161B /* ExpressionTests.swift in Sources */,
+				FFF78E722720B6EF00316AC6 /* AssemblyParserTests.swift in Sources */,
 				FF1923C21D8C687300890EFF /* IntegrationTests.swift in Sources */,
 				FF451FE61D8438A500E54BD3 /* AssemblerTests.swift in Sources */,
 				FFDD34BD1D856EC100B09D03 /* ParserTests.swift in Sources */,
@@ -412,6 +415,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -432,6 +436,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -458,7 +463,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -473,6 +478,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -493,6 +499,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -513,7 +520,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -594,20 +601,22 @@
 		FF451FF01D843A6A00E54BD3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				INFOPLIST_FILE = "$(SRCROOT)/Sources/Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
 		FF451FF11D843A6A00E54BD3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				INFOPLIST_FILE = "$(SRCROOT)/Sources/Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

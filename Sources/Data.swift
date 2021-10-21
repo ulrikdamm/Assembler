@@ -6,6 +6,8 @@
 //  Copyright © 2016 Ufd.dk. All rights reserved.
 //
 
+import Cocoa
+
 public struct Instruction : Equatable {
 	let mnemonic : String
 	let operands : [Expression]
@@ -30,8 +32,17 @@ extension Instruction : CustomStringConvertible {
 struct Label {
 	let identifier : String
     let parent : String?
+    let line : Int?
 	let instructions : [Instruction]
 	let options : [String: Expression]
+    
+    public init(identifier : String, parent : String? = nil, line : Int? = nil, instructions : [Instruction], options : [String: Expression]) {
+        self.identifier = identifier
+        self.parent = parent
+        self.line = line
+        self.instructions = instructions
+        self.options = options
+    }
 }
 
 extension Label : CustomStringConvertible {
@@ -73,10 +84,24 @@ struct Program {
 	let blocks : [Label]
 }
 
-public struct ErrorMessage : Error {
+public struct ErrorMessage : LocalizedError {
 	public let message : String
 	
-	public init(_ message : String) {
+    public init(_ message : String) {
 		self.message = message
 	}
+    
+    public var errorDescription : String? { "Error: \(message)" }
+}
+
+public struct AssemblyError : LocalizedError {
+    public let message : String
+    public let line : Int?
+    
+    public init(_ message : String, line : Int?) {
+        self.message = message
+        self.line = line
+    }
+    
+    public var errorDescription : String? { "Error on line \(line?.description ?? "??"): \(message)" }
 }

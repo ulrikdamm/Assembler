@@ -38,14 +38,11 @@ public enum Opcode : CustomStringConvertible {
 		return [.byte(n16.lsb), .byte(n16.msb)]
 	}
 	
-    func expandExpression(using constantExpander : ExpressionConstantExpansion, inParentLabel parent : String?) throws -> Opcode {
-		switch self {
-		case .expression(let expr, let resultType):
-			let expanded = try constantExpander.expand(expr, labelParent: parent)
-			return .expression(expanded, resultType)
-		case _:
-			return self
-		}
+    func expandExpression(using constantExpander : ExpressionConstantExpansion, inParentLabel parent : String?, line : Int? = nil) throws -> Opcode {
+        guard case let .expression(expr, resultType) = self else { return self }
+        
+        let expanded = try constantExpander.expand(expr, labelParent: parent, line: line)
+        return .expression(expanded, resultType)
 	}
 }
 
@@ -65,13 +62,20 @@ struct Linker {
 		let name : String
         let parent : String?
 		let origin : Int?
-		let data : [Opcode]
+        let data : [(code : Opcode, line : Int?)]
 		
-		var length : Int { return data.map(\.byteLength).sum() }
+        var length : Int { return data.map(\.code).map(\.byteLength).sum() }
         
         var nameAndParent : (String, String?) { (name, parent) }
         
         init(name : String, parent : String? = nil, origin : Int? = nil, data : [Opcode]) {
+            self.name = name
+            self.parent = parent
+            self.origin = origin
+            self.data = data.map { code in (code, nil) }
+        }
+        
+        init(name : String, parent : String? = nil, origin : Int? = nil, data : [(code : Opcode, line : Int?)]) {
             self.name = name
             self.parent = parent
             self.origin = origin
@@ -124,11 +128,16 @@ struct Linker {
 	func copyAllocation(_ allocation : Allocation, to buffer : inout Buffer) throws {
 		buffer.index = allocation.start
 		
-		for byte in blocks[allocation.blockId].data {
+		for (byte, line) in blocks[allocation.blockId].data {
 			switch byte {
 			case .byte(let n): buffer.append(n)
 			case .word(let n): buffer.append(n.lsb, n.msb)
-			case .expression(let expr, let type): try appendExpression(expr, of: type, to: &buffer)
+			case .expression(let expr, let type):
+                do {
+                    try appendExpression(expr, of: type, to: &buffer)
+                } catch let error as ErrorMessage {
+                    throw AssemblyError(error.message, line: line)
+                }
 			}	
 		}
 	}
@@ -168,13 +177,10 @@ struct Linker {
 	}
 	
 	func replaceExpressionLabelValue(expression : Expression) throws -> Expression {
-		switch expression {
-		case .constant(let name):
-            guard let location = findAllocation(name: name)?.start else { throw ErrorMessage("Unknown label `\(name)`") }
-			return .value(location)
-		case _:
-			return expression
-		}
+        guard case let .constant(name) = expression else { return expression }
+        
+        guard let location = findAllocation(name: name)?.start else { throw ErrorMessage("Unknown label `\(name)`") }
+        return .value(location)
 	}
 	
 	static func createAllocations(blocks : [Block]) -> [Allocation] {

@@ -14,12 +14,12 @@ class ExpressionTests : XCTestCase {
 		let result : Expression
 		
 		do {
-			let state = State(source: code)
-			guard let r = try AssemblyParser.getExpression(state)?.value else {
+			var state = ParserState(source: code)
+			guard let r = try state.getExpression() else {
 				XCTFail("Couldn't parse expression: `\(code)`"); return
 			}
 			result = r
-		} catch let error as State.ParseError {
+		} catch let error as ParserState.ParseError {
 			XCTFail("Couldn't parse expression: `\(error.localizedDescription)`"); return
 		} catch let error {
 			XCTFail("Couldn't parse expression: `\(error)`"); return

@@ -25,12 +25,9 @@ public func formatBytes(bytes : [UInt8]) -> String {
 }
 
 public func assembleProgram(source : [String], instructionSet : InstructionSet) throws -> [UInt8] {
-	let initialState = State(source: source)
+	var state = ParserState(source: source)
     
-	guard let program = try AssemblyParser.getProgram(initialState)?.value else {
-        throw ErrorMessage("Couldn't parse source")
-    }
-    
+	let program = try state.getProgram()
     let assembler = Assembler(instructionSet: instructionSet, constants: program.constants)
     let blocks = try program.blocks.map { block in try assembler.assembleBlock(label: block) }
     let bytes = try Linker(blocks: blocks).link()

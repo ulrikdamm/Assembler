@@ -106,4 +106,15 @@ class SpriteReaderTests : XCTestCase {
 		
 		XCTAssertEqual(instruction, correctInstruction)
 	}
+    
+    func test_performance() throws {
+        let sourceURL = URL(fileURLWithPath: "/Users/ulrikdamm/Developer/Planet Life GB/spritesheet.png")
+        let image = NSImage(contentsOf: sourceURL)!
+            
+        measure {
+            for _ in 0 ..< 10 {
+                let _ = SpriteReader.splitImageIntoSprites(image)
+            }
+        }
+    }
 }

@@ -8,6 +8,7 @@
 
 import Foundation
 import AppKit
+import Dispatch
 
 extension Array where Element == Int {
 	func byteFromBits() -> UInt8 {
@@ -57,16 +58,25 @@ class SpriteReader {
 	static func splitImageIntoSprites(_ image : NSImage) -> [Sprite] {
 		let horizontalSprites = Int(image.size.width / 8)
 		let verticalSprites = Int(image.size.height / 8)
-		
+        
 		var sprites : [Sprite] = []
-		
+        sprites.reserveCapacity(verticalSprites * horizontalSprites)
+        
+        let bitmap = NSBitmapImageRep(data: image.tiffRepresentation!)!
+        let data = bitmap.bitmapData!
+        
+        let colors = (0 ..< bitmap.pixelsWide * bitmap.pixelsHigh).map { i -> Float in
+            let sum = Float(data[i * 3 + 0]) / 255 + Float(data[i * 3 + 1]) / 255 + Float(data[i * 3 + 2]) / 255
+            return sum / 3
+        }
+        
 		for y in 0 ..< verticalSprites {
 			for x in 0 ..< horizontalSprites {
-				sprites.append(spriteFromImage(image, x: x * 8, y: y * 8))
+                sprites.append(spriteFromImage(colors, width: bitmap.pixelsWide, x: x * 8, y: y * 8))
 			}
 		}
 		
-		return sprites
+        return sprites
 	}
 	
 	static func pixelValueForColor(_ color : NSColor) -> Int {
@@ -74,27 +84,48 @@ class SpriteReader {
 	}
 	
 	static func spriteFromImage(_ image : NSImage, x : Int, y : Int) -> Sprite {
-		var pixels : [Int] = []
-		
 		let bitmap = NSBitmapImageRep(data: image.tiffRepresentation!)!
-		
-		for offsetY in 0 ..< 8 {
-			for offsetX in 0 ..< 8 {
-				let pixel = bitmap.colorAt(x: x + offsetX, y: y + offsetY)!
-				pixels.append(3 - pixelValueForColor(pixel.usingColorSpace(.deviceRGB)!))
-			}
-		}
-		
-		return Sprite(pixels: pixels)
+        return spriteFromImage(bitmap, x: x, y: y)
 	}
-}
-
-extension NSImage {
-	func getPixel(x: Int, y : Int) -> NSColor {
-		self.lockFocus()
-		defer { self.unlockFocus() }
-		
-		guard let color = NSReadPixel(NSPoint(x: CGFloat(x) + 0.5, y: (self.size.height - 1) - CGFloat(y) + 0.5)) else { fatalError("Pixel out of bounds") } 
-		return color
-	}
+    
+    static func spriteFromImage(_ bitmap : NSBitmapImageRep, x : Int, y : Int) -> Sprite {
+        var pixels : [Int] = []
+        
+        for offsetY in 0 ..< 8 {
+            for offsetX in 0 ..< 8 {
+                let pixel = bitmap.colorAt(x: x + offsetX, y: y + offsetY)!
+                pixels.append(3 - pixelValueForColor(pixel.usingColorSpace(.deviceRGB)!))
+            }
+        }
+        
+        return Sprite(pixels: pixels)
+    }
+    
+    static func spriteFromImage(_ colors : [NSColor], width : Int, x : Int, y : Int) -> Sprite {
+        var pixels : [Int] = []
+        
+        for offsetY in 0 ..< 8 {
+            for offsetX in 0 ..< 8 {
+                let pixel = colors[(y + offsetY) * width + (x + offsetX)]
+                pixels.append(3 - pixelValueForColor(pixel.usingColorSpace(.deviceRGB)!))
+            }
+        }
+        
+        return Sprite(pixels: pixels)
+    }
+    
+    static func spriteFromImage(_ intensities : [Float], width : Int, x : Int, y : Int) -> Sprite {
+        var pixels : [Int] = []
+        pixels.reserveCapacity(8 * 8)
+        
+        for offsetY in 0 ..< 8 {
+            for offsetX in 0 ..< 8 {
+                let pixel = intensities[(y + offsetY) * width + (x + offsetX)]
+                let value = Int((pixel * 3).rounded(.toNearestOrEven))
+                pixels.append(3 - value)
+            }
+        }
+        
+        return Sprite(pixels: pixels)
+    }
 }

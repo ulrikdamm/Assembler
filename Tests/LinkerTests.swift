@@ -85,7 +85,7 @@ class LinkerTests : XCTestCase {
 		do {
 			let _ = try linker.link()
 			XCTFail()
-		} catch is ErrorMessage {
+		} catch is AssemblyError {
 			// TODO: error message enum
 		} catch {
 			XCTFail()
@@ -116,7 +116,7 @@ class LinkerTests : XCTestCase {
 		do {
 			let _ = try linker.link()
 			XCTFail()
-		} catch is ErrorMessage {
+		} catch is AssemblyError {
 			// TODO: error message enum
 		} catch {
 			XCTFail()

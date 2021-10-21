@@ -10,98 +10,105 @@ import XCTest
 @testable import Assembler
 
 class ParserTests : XCTestCase {
-	func testGetChar() { 
-		let (character, state) = State(source: "a").getChar()!
-		XCTAssertEqual(character, "a")
+	func testGetChar() {
+        var state = ParserState(source: "a")
+        XCTAssertEqual(state.getChar(), "a")
 		XCTAssertTrue(state.atEnd)
 	}
 	
 	func testGetCharFail() {
-		XCTAssertNil(State(source: "").getChar())
+        var state = ParserState(source: "")
+		XCTAssertNil(state.getChar())
 	}
 	
-	func testGetNumericChar() { 
-		let (number, state) = State(source: "1").getNumericChar()!
-		XCTAssertEqual(number, "1")
+	func testGetNumericChar() {
+        var state = ParserState(source: "1")
+		XCTAssertEqual(state.getNumericChar(), "1")
 		XCTAssertTrue(state.atEnd)
 	}
 	
-	func testGetNumericCharFail() { 
-		XCTAssertNil(State(source: "a").getNumericChar())
+	func testGetNumericCharFail() {
+        var state = ParserState(source: "a")
+		XCTAssertNil(state.getNumericChar())
 	}
 	
-	func testGetAlphaChar() { 
-		let (character, state) = State(source: "_").getAlphaChar()!
-		XCTAssertEqual(character, "_")
+	func testGetAlphaChar() {
+        var state = ParserState(source: "_")
+        XCTAssertEqual(state.getAlphaChar(), "_")
 		XCTAssertTrue(state.atEnd)
 	}
 	
-	func testGetAlphaCharFail() { 
-		XCTAssertNil(State(source: "-").getAlphaChar())
+	func testGetAlphaCharFail() {
+        var state = ParserState(source: "-")
+		XCTAssertNil(state.getAlphaChar())
 	}
 	
-	func testGetIdentifier() { 
-		let (name, state) = State(source: "abc_123").getIdentifier()!
-		XCTAssertEqual(name, "abc_123")
+	func testGetIdentifier() {
+        var state = ParserState(source: "abc_123")
+        XCTAssertEqual(state.getIdentifier(), "abc_123")
 		XCTAssertTrue(state.atEnd)
 	}
 	
-	func testGetStringFail() { 
-		XCTAssertNil(State(source: "123_abc").getIdentifier())
+	func testGetStringFail() {
+        var state = ParserState(source: "123_abc")
+		XCTAssertNil(state.getIdentifier())
 	}
 	
-	func testGetNumber() { 
-		let (number, state) = State(source: "123").getNumber()!
-		XCTAssertEqual(number, 123)
+	func testGetNumber() {
+        var state = ParserState(source: "123")
+        XCTAssertEqual(state.getNumber(), 123)
 		XCTAssertTrue(state.atEnd)
 	}
 	
 	// Regression test: would fail to read 0
-	func testGetNumberZero() { 
-		let (number, state) = State(source: "0").getNumber()!
-		XCTAssertEqual(number, 0)
+	func testGetNumberZero() {
+        var state = ParserState(source: "0")
+        XCTAssertEqual(state.getNumber(), 0)
 		XCTAssertTrue(state.atEnd)
 	}
 	
-	func testGetNumberDecimal() { 
-		let (number, state) = State(source: "0d123").getNumber()!
-		XCTAssertEqual(number, 123)
+	func testGetNumberDecimal() {
+        var state = ParserState(source: "0d123")
+        XCTAssertEqual(state.getNumber(), 123)
 		XCTAssertTrue(state.atEnd)
 	}
 	
-	func testGetNumberHex() { 
-		let (number, state) = State(source: "0x100").getNumber()!
-		XCTAssertEqual(number, 0x100)
+	func testGetNumberHex() {
+        var state = ParserState(source: "0x100")
+        XCTAssertEqual(state.getNumber(), 0x100)
 		XCTAssertTrue(state.atEnd)
 	}
 	
-	func testGetNumberBinary() { 
-		let (number, state) = State(source: "0b00011011").getNumber()!
-		XCTAssertEqual(number, 0b00011011)
+	func testGetNumberBinary() {
+        var state = ParserState(source: "0b00011011")
+        XCTAssertEqual(state.getNumber(), 0b00011011)
 		XCTAssertTrue(state.atEnd)
 	}
 	
-	func testGetNumberBinarySeparators() { 
-		let (number, state) = State(source: "0b0001_1011").getNumber()!
-		XCTAssertEqual(number, 0b0001_1011)
+	func testGetNumberBinarySeparators() {
+        var state = ParserState(source: "0b0001_1011")
+        XCTAssertEqual(state.getNumber(), 0b0001_1011)
 		XCTAssertTrue(state.atEnd)
 	}
 	
-	func testGetNumberFail() { 
-		XCTAssertNil(State(source: "abc").getNumber())
+	func testGetNumberFail() {
+        var state = ParserState(source: "abc")
+		XCTAssertNil(state.getNumber())
 	}
 	
-	func testGetStringLiteral() {
-		let (string, state) = try! State(source: "\"abc\"").getStringLiteral()!
-		XCTAssertEqual(string, "abc")
+	func testGetStringLiteral() throws {
+        var state = ParserState(source: "\"abc\"")
+        XCTAssertEqual(try state.getStringLiteral(), "abc")
 		XCTAssertTrue(state.atEnd)
 	}
 	
 	func testGetStringLiteralNoEnd() {
+        var state = ParserState(source: "\"abc")
+        
 		do {
-			let _ = try State(source: "\"abc").getStringLiteral()
+			let _ = try state.getStringLiteral()
 			XCTFail()
-		} catch let error as State.ParseError {
+		} catch let error as ParserState.ParseError {
 			switch error.reason {
 			case .expectedMatch(match: "\""): break
 			case _: XCTFail()
@@ -112,6 +119,82 @@ class ParserTests : XCTestCase {
 	}
 	
 	func testGetStringLiteralFail() {
-		try! XCTAssertNil(State(source: "abc").getStringLiteral())
+        var state = ParserState(source: "abc")
+		try! XCTAssertNil(state.getStringLiteral())
 	}
+    
+    func testGetEscapedQuoteStringLiteral() throws {
+        var state = ParserState(source: "\"a\\\"b\"")
+        XCTAssertEqual(try state.getStringLiteral(), "a\"b")
+        XCTAssert(state.atEnd)
+    }
+    
+    func testGetEscapedSlashStringLiteral() throws {
+        var state = ParserState(source: "\"a\\\\b\"")
+        XCTAssertEqual(try state.getStringLiteral(), "a\\b")
+        XCTAssert(state.atEnd)
+    }
+    
+    func testGetEscapedUnicodeStringLiteral() throws {
+        var state = ParserState(source: "\"1\\u202\"")
+        XCTAssertEqual(try state.getStringLiteral(), "1 2")
+        XCTAssert(state.atEnd)
+    }
+    
+    func testGetInvalidEscapedUnicodeStringLiteral() throws {
+        var state = ParserState(source: "\"1\\u2\"")
+        
+        do {
+            let _ = try state.getStringLiteral()
+            XCTFail()
+        } catch let error as ParserState.ParseError {
+            switch error.reason {
+            case .invalidUnicodeEscape: break
+            case _: XCTFail()
+            }
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testGetInvalidEscapedStringLiteral() throws {
+        var state = ParserState(source: "\"a\\xb\"")
+        
+        do {
+            let _ = try state.getStringLiteral()
+            XCTFail()
+        } catch let error as ParserState.ParseError {
+            switch error.reason {
+            case .invalidEscape(value: "x"): break
+            case _: XCTFail()
+            }
+        } catch {
+            XCTFail()
+        }
+    }
+    
+    func testSkipWhitespace() {
+        var state = ParserState(source: " \t \n ")
+        state.skipWhitespace(includingLineBreaks: true)
+        XCTAssert(state.atEnd)
+    }
+    
+    func testSkipComment() {
+        var state = ParserState(source: "#some comment whatever\n")
+        state.skipComments()
+        XCTAssert(state.match("\n"))
+        XCTAssert(state.atEnd)
+    }
+    
+    func testSkipWhitespaceAndComment() {
+        var state = ParserState(source: "#some comment whatever\n#Another comment\n")
+        state.skipCommentsAndWhitespace()
+        XCTAssert(state.atEnd)
+    }
+    
+    func testSkipWhitespaceAndCommentNoLineBreaks() {
+        var state = ParserState(source: "#some comment whatever\n#Another comment\n")
+        state.skipCommentsAndWhitespace(includingLineBreaks: false)
+        XCTAssert(state.match("\n#Another"))
+    }
 }
